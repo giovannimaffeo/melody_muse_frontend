@@ -1,25 +1,16 @@
-import { ColorOption } from '../interfaces/colorOption';
-
-interface DrawingToolMenuProps {
-  colorOptions: ColorOption[];
-  brushSize: number;
-  setBrushSize: (size: number) => void;
-  setColor: (color: ColorOption) => void;
-}
-
 const DrawingToolMenu = ({ 
   colorOptions, 
   brushSize, 
   setBrushSize, 
   setColor 
-}: DrawingToolMenuProps) => {
-  const handleColorClick = (colorOption: ColorOption) => {
+}: any) => {
+  const handleColorClick = (colorOption: any) => {
     setColor(colorOption); 
     
     if (colorOption.sound) {
       colorOption.sound.currentTime = 0; 
       colorOption.sound.play();
-    }
+    };
   };
 
   return (
@@ -30,19 +21,19 @@ const DrawingToolMenu = ({
           min='1'
           max='50'
           value={brushSize}
-          onChange={(e) => setBrushSize(Number(e.target.value))}
+          onChange={(e) => setBrushSize(e.target.value)}
           className='w-full'
         />
       </div>
       <div className='flex items-center'>
         <div>
-          {colorOptions.map((colorOption) => (
+          {colorOptions.map((colorOption: any) => 
             <button 
-              key={colorOption.color}
               onClick={() => handleColorClick(colorOption)}
-              className={`p-0 w-5 h-5 rounded bg-${colorOption.tailwind}`} 
+              style={{ backgroundColor: colorOption.hex }}
+              className={'p-0 w-5 h-5 rounded'} 
             />
-          ))}
+          )}
         </div>
       </div>
     </div>

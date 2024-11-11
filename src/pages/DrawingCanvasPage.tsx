@@ -4,7 +4,6 @@ import { FaEraser } from 'react-icons/fa6';
 import { VscDebugRestart } from 'react-icons/vsc';
 
 import DrawingToolMenu from '../components/DrawingToolMenu';
-import { ColorOption } from '../interfaces/colorOption';
 
 const DrawingCanvas = () => {
   const canvasRef: any = useRef(null);
@@ -14,19 +13,54 @@ const DrawingCanvas = () => {
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState(false);
   const [tool, setTool] = useState('pencil');
   const [brushSize, setBrushSize] = useState(10);
-  const colorOptions: ColorOption[] = [
-    { color: "red", tailwind: "red-500", hex: "#ef4444", sound: new Audio('/assets/sounds/green.wav') },
-    { color: "orange", tailwind: "orange-500", hex: "#f97316", sound: new Audio('/assets/sounds/green.wav') },
-    { color: "yellow", tailwind: "yellow-500", hex: "#eab308", sound: new Audio('/assets/sounds/green.wav') },
-    { color: "green", tailwind: "green-500", hex: "#22c55e", sound: new Audio('/assets/sounds/green.wav') },
-    { color: "blue", tailwind: "blue-500", hex: "#3b82f6", sound: new Audio('/assets/sounds/green.wav') },
-    { color: "pink", tailwind: "pink-500", hex: "#ec4899", sound: new Audio('/assets/sounds/green.wav') },
-    { color: "purple", tailwind: "purple-500", hex: "#a855f7", sound: new Audio('/assets/sounds/green.wav') },
+  const colorOptions = [
+    {
+      color: "red",
+      tailwind: "red-500",
+      hex: "#ef4444", 
+      sound: new Audio('/assets/sounds/green.wav')
+    },
+    {
+      color: "orange",
+      tailwind: "orange-500",
+      hex: "#f97316", 
+      sound: new Audio('/assets/sounds/green.wav')
+    },
+    {
+      color: "yellow",
+      tailwind: "yellow-500",
+      hex: "#eab308", 
+      sound: new Audio('/assets/sounds/green.wav')
+    },
+    {
+      color: "green",
+      tailwind: "green-500",
+      hex: "#22c55e", 
+      sound: new Audio('/assets/sounds/green.wav')
+    },
+    {
+      color: "blue",
+      tailwind: "blue-500",
+      hex: "#3b82f6", 
+      sound: new Audio('/assets/sounds/green.wav')
+    },
+    {
+      color: "pink",
+      tailwind: "pink-500",
+      hex: "#ec4899", 
+      sound: new Audio('/assets/sounds/green.wav')
+    },
+    {
+      color: "purple",
+      tailwind: "purple-500",
+      hex: "#a855f7", 
+      sound: new Audio('/assets/sounds/green.wav')
+    },
   ];
   const [color, setColor] = useState(colorOptions[0]);
 
   const startDrawing = (event: any) => {
-    event.preventDefault(); // Evita o comportamento de rolagem
+    event.preventDefault();
     const touch = event.touches ? event.touches[0] : event;
     const { offsetX, offsetY } = getOffset(touch);
     contextRef.current.beginPath();
@@ -46,7 +80,7 @@ const DrawingCanvas = () => {
     const touch = event.touches ? event.touches[0] : event;
     const { offsetX, offsetY } = getOffset(touch);
 
-    contextRef.current.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
+    contextRef.current.strokeStyle = tool === 'eraser' ? '#ffffff' : color.hex;
     contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
   };
@@ -102,11 +136,11 @@ const DrawingCanvas = () => {
           style={{
             backgroundColor: tool === 'pencil' ? '#F8FAFC' : 'transparent'
           }} 
-          className={`p-0 h-7 w-7 flex justify-center items-center rounded-full`}
+          className='p-0 h-7 w-7 flex justify-center items-center rounded-full'
         >
           <FaPaintBrush 
             style={{ fill: tool === 'pencil' ? color.hex : 'white' }}
-            className={'size-[60%]'}
+            className='size-[60%]'
           />
         </button>
         <button 
@@ -114,11 +148,11 @@ const DrawingCanvas = () => {
           style={{
             backgroundColor: tool === 'eraser' ? '#F8FAFC' : 'transparent'
           }} 
-          className={`p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.7%]`}
+          className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.7%]'
         >
           <FaEraser 
-            style={{ fill: tool === 'eraser' ? '#7E22CE' : 'white' }}
-            className={'size-[75%]'} 
+            style={{ fill: tool === 'eraser' ? colorOptions.find(option => option.color === 'purple')?.hex : 'white' }}
+            className='size-[75%]' 
           />
         </button>
         <button 
