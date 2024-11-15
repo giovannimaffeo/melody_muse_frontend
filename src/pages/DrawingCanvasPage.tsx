@@ -6,6 +6,8 @@ import { VscDebugRestart } from 'react-icons/vsc';
 import DrawingToolMenu from '../components/DrawingToolMenu';
 import { colors } from '../constants/colors';
 import { BrushStyle } from '../interfaces/brushStyle';
+import { eraserSize } from '../constants/eraserSize';
+import { initialBrushSize } from '../constants/initialBrushSize';
 
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -23,8 +25,36 @@ const DrawingCanvas = () => {
   });*/
   const [brushStyle, setBrushStyle] = useState<BrushStyle>({
     color: colors[0],
-    size: 10
+    size: initialBrushSize
   });
+
+  const handleChangeTool = (tool: 'brush' | 'eraser') => {
+    setTool(tool);
+    const isToolBrush = tool === 'brush';
+
+    isToolBrush && setOpenDrawingToolMenu(!openDrawingToolMenu);
+    if (contextRef.current) {
+      contextRef.current.lineWidth = isToolBrush ? brushStyle.size : eraserSize;
+    };
+  };
+
+  const handleChangeBrushStyle = <K extends keyof BrushStyle>(
+    key: K, 
+    value: BrushStyle[K]
+  ) => {
+    setBrushStyle(({
+      ...brushStyle,
+      [key]: value,
+    }));
+
+    if (contextRef.current) {
+      if (typeof value === 'object' && 'hex' in value) {
+        contextRef.current.strokeStyle = value.hex;
+      } else {
+        contextRef.current.lineWidth = value;
+      };
+    };
+  };
 
   const startDrawing = (event: any) => {
     event.preventDefault();
@@ -89,25 +119,13 @@ const DrawingCanvas = () => {
       context.lineWidth = brushStyle.size;
       contextRef.current = context;
     }
-  }, [brushStyle.size]);
-
-  useEffect(() => {
-    if (contextRef.current) {
-      contextRef.current.strokeStyle = brushStyle.color.hex;
-    };
-  }, [brushStyle.color]);
-
-  useEffect(() => {
-    if (contextRef.current) {
-      contextRef.current.lineWidth = tool === 'brush' ? brushStyle.size : 25;
-    };
-  }, [brushStyle.size, tool]);
+  }, []);
 
   return (
     <div onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col w-screen h-screen bg-white'>
       <div className='flex bg-purple-700 h-[5%] w-full pl-[1.5%] items-center'>
         <button 
-          onClick={() => (setOpenDrawingToolMenu(!openDrawingToolMenu), setTool('brush'))} 
+          onClick={() => handleChangeTool('brush')} 
           style={{
             backgroundColor: tool === 'brush' ? '#F8FAFC' : 'transparent'
           }} 
@@ -119,7 +137,7 @@ const DrawingCanvas = () => {
           />
         </button>
         <button 
-          onClick={() => setTool('eraser')} 
+          onClick={() => handleChangeTool('eraser')} 
           style={{
             backgroundColor: tool === 'eraser' ? '#F8FAFC' : 'transparent'
           }} 
@@ -140,7 +158,7 @@ const DrawingCanvas = () => {
       {openDrawingToolMenu &&
         <DrawingToolMenu
           brushStyle={brushStyle}
-          setBrushStyle={setBrushStyle}
+          handleChangeBrushStyle={handleChangeBrushStyle}
         />
       }
       <canvas

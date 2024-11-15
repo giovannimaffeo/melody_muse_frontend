@@ -1,0 +1,1 @@
+export const eraserSize = 25;

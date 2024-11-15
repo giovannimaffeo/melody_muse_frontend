@@ -6,15 +6,15 @@ import { BrushStyle } from '../interfaces/brushStyle';
 
 interface DrawingToolMenuProps {
   brushStyle: BrushStyle;
-  setBrushStyle: React.Dispatch<React.SetStateAction<BrushStyle>>;
+  handleChangeBrushStyle: <K extends keyof BrushStyle>(key: K, value: BrushStyle[K]) => void;
 };
 
 const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({ 
   brushStyle, 
-  setBrushStyle
+  handleChangeBrushStyle
 }) => {
   const handleColorClick = (colorOption: Color) => {
-    setBrushStyle({ ...brushStyle, color: colorOption }); 
+    handleChangeBrushStyle('color', colorOption); 
     
     // Optional sound logic
     /*if (colorOption.sound) {
@@ -31,7 +31,7 @@ const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({
           min='1'
           max='50'
           value={brushStyle.size}
-          onChange={(e) => setBrushStyle({ ...brushStyle, size: Number(e.target.value)})}
+          onChange={(e) => handleChangeBrushStyle('size', Number(e.target.value))}
           className='w-full'
         />
       </div>
