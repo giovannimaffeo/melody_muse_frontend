@@ -1,11 +1,11 @@
-import { useRef, useEffect, useState, MouseEvent, TouchEvent } from 'react';
+import { useRef, useEffect, useState, MouseEvent } from 'react';
 import { FaPaintBrush } from 'react-icons/fa';
 import { FaEraser } from 'react-icons/fa6';
 import { VscDebugRestart } from 'react-icons/vsc';
 
 import DrawingToolMenu from '../components/DrawingToolMenu';
-import { ColorOption } from '../interfaces/colorOption';
-import { colorOptions } from '../constants/colorOptions';
+import { colors } from '../constants/colors';
+import { BrushStyle } from '../interfaces/brushStyle';
 
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -13,9 +13,18 @@ const DrawingCanvas = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
 
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
-  const [tool, setTool] = useState<'pencil' | 'eraser'>('pencil');
-  const [brushSize, setBrushSize] = useState<number>(10);
-  const [color, setColor] = useState<ColorOption>(colorOptions[0]);
+  const [tool, setTool] = useState<'brush' | 'eraser'>('brush');
+
+  /*const [strokes, setStrokes] = useState<any[]>([]); 
+  const [activeStroke, setActiveStroke] = useState<any>({
+    colorOption: colors[0],
+    strokeWidth: 10,
+    points: []
+  });*/
+  const [brushStyle, setBrushStyle] = useState<BrushStyle>({
+    color: colors[0],
+    size: 10
+  });
 
   const startDrawing = (event: any) => {
     event.preventDefault();
@@ -39,7 +48,7 @@ const DrawingCanvas = () => {
     const { offsetX, offsetY } = getOffset(touch);
 
     if (contextRef.current) {
-      contextRef.current.strokeStyle = tool === 'eraser' ? '#ffffff' : color.hex;
+      contextRef.current.strokeStyle = tool === 'eraser' ? '#ffffff' : brushStyle.color.hex;
       contextRef.current.lineTo(offsetX, offsetY);
       contextRef.current.stroke();
     };
@@ -77,35 +86,35 @@ const DrawingCanvas = () => {
     if (context) {
       context.scale(scale, scale);
       context.lineCap = "round";
-      context.lineWidth = brushSize;
+      context.lineWidth = brushStyle.size;
       contextRef.current = context;
     }
-  }, [brushSize]);
+  }, [brushStyle.size]);
 
   useEffect(() => {
     if (contextRef.current) {
-      contextRef.current.strokeStyle = color.hex;
+      contextRef.current.strokeStyle = brushStyle.color.hex;
     };
-  }, [color]);
+  }, [brushStyle.color]);
 
   useEffect(() => {
     if (contextRef.current) {
-      contextRef.current.lineWidth = tool === 'pencil' ? brushSize : 25;
+      contextRef.current.lineWidth = tool === 'brush' ? brushStyle.size : 25;
     };
-  }, [brushSize, tool]);
+  }, [brushStyle.size, tool]);
 
   return (
     <div onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col w-screen h-screen bg-white'>
       <div className='flex bg-purple-700 h-[5%] w-full pl-[1.5%] items-center'>
         <button 
-          onClick={() => (setOpenDrawingToolMenu(!openDrawingToolMenu), setTool('pencil'))} 
+          onClick={() => (setOpenDrawingToolMenu(!openDrawingToolMenu), setTool('brush'))} 
           style={{
-            backgroundColor: tool === 'pencil' ? '#F8FAFC' : 'transparent'
+            backgroundColor: tool === 'brush' ? '#F8FAFC' : 'transparent'
           }} 
           className='p-0 h-7 w-7 flex justify-center items-center rounded-full'
         >
           <FaPaintBrush 
-            style={{ fill: tool === 'pencil' ? color.hex : 'white' }}
+            style={{ fill: tool === 'brush' ? brushStyle.color.hex : 'white' }}
             className='size-[60%]'
           />
         </button>
@@ -117,7 +126,7 @@ const DrawingCanvas = () => {
           className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.7%]'
         >
           <FaEraser 
-            style={{ fill: tool === 'eraser' ? colorOptions.find(option => option.color === 'purple')?.hex : 'white' }}
+            style={{ fill: tool === 'eraser' ? colors.find(option => option.name === 'purple')?.hex : 'white' }}
             className='size-[75%]' 
           />
         </button>
@@ -130,10 +139,8 @@ const DrawingCanvas = () => {
       </div>
       {openDrawingToolMenu &&
         <DrawingToolMenu
-          colorOptions={colorOptions}
-          brushSize={brushSize}
-          setBrushSize={setBrushSize}
-          setColor={setColor}
+          brushStyle={brushStyle}
+          setBrushStyle={setBrushStyle}
         />
       }
       <canvas

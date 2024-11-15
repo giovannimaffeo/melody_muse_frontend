@@ -1,22 +1,20 @@
 import React from 'react';
 
-import { ColorOption } from '../interfaces/colorOption';
+import { Color } from '../interfaces/color';
+import { colors } from '../constants/colors';
+import { BrushStyle } from '../interfaces/brushStyle';
 
 interface DrawingToolMenuProps {
-  colorOptions: ColorOption[];
-  brushSize: number;
-  setBrushSize: (size: number) => void;
-  setColor: (color: ColorOption) => void;
+  brushStyle: BrushStyle;
+  setBrushStyle: React.Dispatch<React.SetStateAction<BrushStyle>>;
 };
 
 const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({ 
-  colorOptions, 
-  brushSize, 
-  setBrushSize, 
-  setColor 
+  brushStyle, 
+  setBrushStyle
 }) => {
-  const handleColorClick = (colorOption: ColorOption) => {
-    setColor(colorOption); 
+  const handleColorClick = (colorOption: Color) => {
+    setBrushStyle({ ...brushStyle, color: colorOption }); 
     
     // Optional sound logic
     /*if (colorOption.sound) {
@@ -32,14 +30,14 @@ const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({
           type='range'
           min='1'
           max='50'
-          value={brushSize}
-          onChange={(e) => setBrushSize(Number(e.target.value))}
+          value={brushStyle.size}
+          onChange={(e) => setBrushStyle({ ...brushStyle, size: Number(e.target.value)})}
           className='w-full'
         />
       </div>
       <div className='flex items-center'>
         <div>
-          {colorOptions.map((colorOption) => (
+          {colors.map((colorOption) => (
             <button 
               key={colorOption.hex} 
               onClick={() => handleColorClick(colorOption)}
