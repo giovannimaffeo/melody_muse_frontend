@@ -1,75 +1,33 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, MouseEvent, TouchEvent } from 'react';
 import { FaPaintBrush } from 'react-icons/fa';
 import { FaEraser } from 'react-icons/fa6';
 import { VscDebugRestart } from 'react-icons/vsc';
 
 import DrawingToolMenu from '../components/DrawingToolMenu';
+import { ColorOption } from '../interfaces/colorOption';
+import { colorOptions } from '../constants/colorOptions';
 
 const DrawingCanvas = () => {
-  const canvasRef: any = useRef(null);
-  const contextRef: any = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
 
-  const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState(false);
-  const [tool, setTool] = useState('pencil');
-  const [brushSize, setBrushSize] = useState(10);
-  const colorOptions = [
-    {
-      color: "red",
-      tailwind: "red-500",
-      hex: "#ef4444", 
-      sound: new Audio('/assets/sounds/green.wav')
-    },
-    {
-      color: "orange",
-      tailwind: "orange-500",
-      hex: "#f97316", 
-      sound: new Audio('/assets/sounds/green.wav')
-    },
-    {
-      color: "yellow",
-      tailwind: "yellow-500",
-      hex: "#eab308", 
-      sound: new Audio('/assets/sounds/green.wav')
-    },
-    {
-      color: "green",
-      tailwind: "green-500",
-      hex: "#22c55e", 
-      sound: new Audio('/assets/sounds/green.wav')
-    },
-    {
-      color: "blue",
-      tailwind: "blue-500",
-      hex: "#3b82f6", 
-      sound: new Audio('/assets/sounds/green.wav')
-    },
-    {
-      color: "pink",
-      tailwind: "pink-500",
-      hex: "#ec4899", 
-      sound: new Audio('/assets/sounds/green.wav')
-    },
-    {
-      color: "purple",
-      tailwind: "purple-500",
-      hex: "#a855f7", 
-      sound: new Audio('/assets/sounds/green.wav')
-    },
-  ];
-  const [color, setColor] = useState(colorOptions[0]);
+  const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
+  const [tool, setTool] = useState<'pencil' | 'eraser'>('pencil');
+  const [brushSize, setBrushSize] = useState<number>(10);
+  const [color, setColor] = useState<ColorOption>(colorOptions[0]);
 
   const startDrawing = (event: any) => {
     event.preventDefault();
-    const touch = event.touches ? event.touches[0] : event;
+    const touch = 'touches' in event ? event.touches[0] : event;
     const { offsetX, offsetY } = getOffset(touch);
-    contextRef.current.beginPath();
-    contextRef.current.moveTo(offsetX, offsetY);
+    contextRef.current?.beginPath();
+    contextRef.current?.moveTo(offsetX, offsetY);
     setIsDrawing(true);
   };
 
   const finishDrawing = () => {
-    contextRef.current.closePath();
+    contextRef.current?.closePath();
     setIsDrawing(false);
   };
 
@@ -77,16 +35,19 @@ const DrawingCanvas = () => {
     event.preventDefault();
     if (!isDrawing) return;
 
-    const touch = event.touches ? event.touches[0] : event;
+    const touch = 'touches' in event ? event.touches[0] : event;
     const { offsetX, offsetY } = getOffset(touch);
 
-    contextRef.current.strokeStyle = tool === 'eraser' ? '#ffffff' : color.hex;
-    contextRef.current.lineTo(offsetX, offsetY);
-    contextRef.current.stroke();
+    if (contextRef.current) {
+      contextRef.current.strokeStyle = tool === 'eraser' ? '#ffffff' : color.hex;
+      contextRef.current.lineTo(offsetX, offsetY);
+      contextRef.current.stroke();
+    };
   };
 
-  const getOffset = (touch: any) => {
+  const getOffset = (touch: MouseEvent | Touch): { offsetX: number; offsetY: number } => {
     const canvas = canvasRef.current;
+    if (!canvas) throw new Error('Canvas not found');
     const rect = canvas.getBoundingClientRect();
     return {
       offsetX: touch.clientX - rect.left,
@@ -97,11 +58,14 @@ const DrawingCanvas = () => {
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     const context = contextRef.current;
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (canvas && context) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    };
   };
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
 
     const scale = window.devicePixelRatio || 1;
     canvas.width = window.innerWidth * scale;
@@ -110,22 +74,24 @@ const DrawingCanvas = () => {
     canvas.style.height = `${window.innerHeight * 0.95}px`;
 
     const context = canvas.getContext("2d");
-    context.scale(scale, scale);
-    context.lineCap = "round";
-    context.lineWidth = brushSize;
-    contextRef.current = context;
-  }, []);
+    if (context) {
+      context.scale(scale, scale);
+      context.lineCap = "round";
+      context.lineWidth = brushSize;
+      contextRef.current = context;
+    }
+  }, [brushSize]);
 
   useEffect(() => {
     if (contextRef.current) {
       contextRef.current.strokeStyle = color.hex;
-    }
+    };
   }, [color]);
 
   useEffect(() => {
     if (contextRef.current) {
       contextRef.current.lineWidth = tool === 'pencil' ? brushSize : 25;
-    }
+    };
   }, [brushSize, tool]);
 
   return (
