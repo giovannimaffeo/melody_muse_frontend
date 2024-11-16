@@ -2,12 +2,15 @@ import { useRef, useEffect, useState, MouseEvent } from 'react';
 import { FaPaintBrush } from 'react-icons/fa';
 import { FaEraser } from 'react-icons/fa6';
 import { VscDebugRestart } from 'react-icons/vsc';
+import { GiClick } from "react-icons/gi";
 
 import DrawingToolMenu from '../components/DrawingToolMenu';
 import { colors } from '../constants/colors';
 import { BrushStyle } from '../interfaces/brushStyle';
-import { eraserSize } from '../constants/eraserSize';
+import { eraserColor, eraserSize } from '../constants/eraser';
 import { initialBrushSize } from '../constants/initialBrushSize';
+import { Stroke } from '../interfaces/stroke';
+import { rate } from '../constants/rate';
 
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -15,14 +18,10 @@ const DrawingCanvas = () => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
 
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
-  const [tool, setTool] = useState<'brush' | 'eraser'>('brush');
+  const [tool, setTool] = useState<'brush' | 'eraser' | 'click'>('brush');
 
-  /*const [strokes, setStrokes] = useState<any[]>([]); 
-  const [activeStroke, setActiveStroke] = useState<any>({
-    colorOption: colors[0],
-    strokeWidth: 10,
-    points: []
-  });*/
+  const [strokes, setStrokes] = useState<Stroke[]>([]); 
+  const [currentStroke, setCurrentStroke] = useState<Stroke | undefined>();
   const [brushStyle, setBrushStyle] = useState<BrushStyle>({
     color: colors[0],
     size: initialBrushSize
@@ -34,6 +33,7 @@ const DrawingCanvas = () => {
 
     isToolBrush && setOpenDrawingToolMenu(!openDrawingToolMenu);
     if (contextRef.current) {
+      contextRef.current.strokeStyle = isToolBrush ? brushStyle.color.hex : eraserColor;
       contextRef.current.lineWidth = isToolBrush ? brushStyle.size : eraserSize;
     };
   };
@@ -58,30 +58,18 @@ const DrawingCanvas = () => {
 
   const startDrawing = (event: any) => {
     event.preventDefault();
-    const touch = 'touches' in event ? event.touches[0] : event;
+    const touch = event.touches ? event.touches[0] : event;
     const { offsetX, offsetY } = getOffset(touch);
+    
     contextRef.current?.beginPath();
     contextRef.current?.moveTo(offsetX, offsetY);
     setIsDrawing(true);
-  };
 
-  const finishDrawing = () => {
-    contextRef.current?.closePath();
-    setIsDrawing(false);
-  };
-
-  const draw = (event: any) => {
-    event.preventDefault();
-    if (!isDrawing) return;
-
-    const touch = 'touches' in event ? event.touches[0] : event;
-    const { offsetX, offsetY } = getOffset(touch);
-
-    if (contextRef.current) {
-      contextRef.current.strokeStyle = tool === 'eraser' ? '#ffffff' : brushStyle.color.hex;
-      contextRef.current.lineTo(offsetX, offsetY);
-      contextRef.current.stroke();
-    };
+    setCurrentStroke({
+      color: brushStyle.color,
+      width: brushStyle.size,
+      points: [{ x: offsetX, y: offsetY }]
+    });
   };
 
   const getOffset = (touch: MouseEvent | Touch): { offsetX: number; offsetY: number } => {
@@ -94,13 +82,181 @@ const DrawingCanvas = () => {
     };
   };
 
+  const draw = (event: any) => {
+    event.preventDefault();
+    if (!isDrawing) return;
+
+    const touch = event.touches ? event.touches[0] : event;
+    const { offsetX, offsetY } = getOffset(touch);
+
+    if (contextRef.current) {
+      contextRef.current.lineTo(offsetX, offsetY);
+      contextRef.current.stroke();
+
+      currentStroke && setCurrentStroke({
+        ...currentStroke,
+        points: [...currentStroke.points, { x: offsetX, y: offsetY }]
+      });
+    };
+  };
+
+  const calculateStrokeLengthInPixels = () => {
+    if (currentStroke) {
+      const { points } = currentStroke;
+      if (points.length < 2) return 0; 
+    
+      let length = 0;
+    
+      for (let i = 1; i < points.length; i++) {
+        const p1 = points[i - 1];
+        const p2 = points[i];
+    
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+    
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        length += distance;
+      };
+    
+      return Math.round(length); 
+    };
+  };
+
+  const finishDrawing = () => {
+    contextRef.current?.closePath();
+    setIsDrawing(false);
+
+    const length = calculateStrokeLengthInPixels();
+    if (length && currentStroke) {
+      setStrokes([...strokes, { ...currentStroke, length }]);
+      setCurrentStroke(undefined);
+    };
+  };
+
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     const context = contextRef.current;
     if (canvas && context) {
       context.clearRect(0, 0, canvas.width, canvas.height);
+      setStrokes([]);
+      setCurrentStroke(undefined);
     };
   };
+
+  const handleCanvasClick = (event: MouseEvent<HTMLCanvasElement>) => {
+    const { offsetX, offsetY } = getOffset(event);
+  
+    const tolerance = 5; 
+    let selectedStroke;
+    for (let i = 0; i < strokes.length; i++) {
+      const stroke = strokes[i];
+  
+      for (let j = 0; j < stroke.points.length; j++) {
+        const point = stroke.points[j];
+  
+        if (
+          Math.abs(point.x - offsetX) <= tolerance &&
+          Math.abs(point.y - offsetY) <= tolerance
+        ) {
+          selectedStroke = stroke; 
+          break;
+        };
+      };
+    };
+  
+    console.log(selectedStroke);
+    selectedStroke && animateStrokeWithSound(selectedStroke);
+  };  
+
+  const animateStrokeWithSound = (stroke: Stroke) => {
+    const context = contextRef.current;
+    if (!context) return;
+  
+    const length = stroke.length ?? 0; // Comprimento total do traço
+    const duration = length / rate; // Duração em segundos
+    const audio = stroke.color.sound;
+  
+    let currentIndex = 0;
+  
+    // Inicializa limites para limpar o traço depois
+    let xMin = Infinity;
+    let xMax = -Infinity;
+    let yMin = Infinity;
+    let yMax = -Infinity;
+  
+    // Configurar o áudio
+    if (audio) {
+      audio.currentTime = 0; // Começa a tocar do início
+      audio.play(); // Toca o áudio
+  
+      // Parar o áudio após a duração calculada
+      const stopTime = Math.min(audio.duration, duration); // Não exceder a duração do áudio
+      setTimeout(() => {
+        audio.pause();
+      }, stopTime * 1000); // Convertendo para milissegundos
+    }
+  
+    const drawOriginalStroke = () => {
+      // Redesenha o traço original após limpar o cinza
+      context.beginPath();
+      context.lineWidth = stroke.width;
+      context.strokeStyle = stroke.color.hex; // Cor original
+      stroke.points.forEach((point, index) => {
+        if (index === 0) {
+          context.moveTo(point.x, point.y);
+        } else {
+          context.lineTo(point.x, point.y);
+        }
+      });
+      context.stroke();
+    };
+  
+    const drawStep = () => {
+      if (currentIndex >= stroke.points.length - 1) {
+        // Finaliza a animação e limpa o traço
+        setTimeout(() => {
+          context.clearRect(
+            xMin - stroke.width,
+            yMin - stroke.width,
+            xMax - xMin + stroke.width * 2,
+            yMax - yMin + stroke.width * 2
+          );
+          drawOriginalStroke(); // Redesenha o traço original
+        }, 100); // Pequeno atraso para garantir a finalização
+        return;
+      }
+  
+      const p1 = stroke.points[currentIndex];
+      const p2 = stroke.points[currentIndex + 1];
+  
+      // Atualiza os limites do traço
+      xMin = Math.min(xMin, p1.x, p2.x);
+      xMax = Math.max(xMax, p1.x, p2.x);
+      yMin = Math.min(yMin, p1.y, p2.y);
+      yMax = Math.max(yMax, p1.y, p2.y);
+  
+      // Configura o contexto para o traço
+      context.beginPath();
+      context.lineWidth = stroke.width;
+      context.strokeStyle = '#808080'; // Cinza escuro
+      context.moveTo(p1.x, p1.y);
+      context.lineTo(p2.x, p2.y);
+      context.stroke();
+  
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const segmentLength = Math.sqrt(dx * dx + dy * dy);
+      const time = (segmentLength / rate) * 1000; // Tempo para este segmento em milissegundos
+  
+      currentIndex++;
+  
+      // Chama o próximo segmento
+      setTimeout(() => requestAnimationFrame(drawStep), time);
+    };
+  
+    // Inicia a animação
+    drawStep();
+  };      
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -112,18 +268,19 @@ const DrawingCanvas = () => {
     canvas.style.width = `${window.innerWidth}px`;
     canvas.style.height = `${window.innerHeight * 0.95}px`;
 
-    const context = canvas.getContext("2d");
+    const context = canvas.getContext('2d');
     if (context) {
       context.scale(scale, scale);
-      context.lineCap = "round";
+      context.lineCap = 'round';
       context.lineWidth = brushStyle.size;
+      context.strokeStyle = brushStyle.color.hex;
       contextRef.current = context;
     }
   }, []);
 
   return (
     <div onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col w-screen h-screen bg-white'>
-      <div className='flex bg-purple-700 h-[5%] w-full pl-[1.5%] items-center'>
+      <div className='flex bg-purple-700 h-[5%] w-full pl-[1.5%] items-center justify-center'>
         <button 
           onClick={() => handleChangeTool('brush')} 
           style={{
@@ -149,6 +306,18 @@ const DrawingCanvas = () => {
           />
         </button>
         <button 
+          onClick={() => setTool('click')} 
+          style={{
+            backgroundColor: tool === 'click' ? '#F8FAFC' : 'transparent'
+          }} 
+          className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[1%]'
+        >
+          <GiClick  
+            style={{ fill: tool === 'click' ? colors.find(option => option.name === 'purple')?.hex : 'white' }}
+            className='size-[75%]' 
+          />
+        </button>
+        <button 
           onClick={clearCanvas} 
           className='p-0 flex justify-center items-center bg-transparent ml-[0.6%] h-full'
         >
@@ -163,17 +332,20 @@ const DrawingCanvas = () => {
       }
       <canvas
         ref={canvasRef}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={finishDrawing}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={finishDrawing}
-        onMouseLeave={finishDrawing}
+        onTouchStart={tool === 'click' ? undefined : startDrawing}
+        onTouchMove={tool === 'click' ? undefined : draw}
+        onTouchEnd={tool === 'click' ? undefined : finishDrawing}
+        onMouseDown={tool === 'click' ? undefined : startDrawing}
+        onMouseMove={tool === 'click' ? undefined : draw}
+        onMouseUp={tool === 'click' ? undefined : finishDrawing}
+        onMouseLeave={tool === 'click' ? undefined : finishDrawing}
         className='h-[95%] w-full'
+        style={{ touchAction: 'none' }}
+        onClick={tool === 'click' ? handleCanvasClick : undefined}
       />
       <button
         className='absolute right-12 bottom-8 bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg hover:bg-purple-600 transition duration-200'
+        onClick={() => console.log(strokes)}
       >
         Gerar Música
       </button>

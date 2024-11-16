@@ -24,7 +24,7 @@ const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({
   };
 
   return (
-    <div className='absolute top-[6%] left-[0.5%] bg-gray-700 text-white p-4 rounded-lg shadow-lg flex flex-col gap-4'>
+    <div className='absolute top-[6%] left-[42%] bg-gray-700 text-white p-4 rounded-lg shadow-lg flex flex-col gap-4'>
       <div className='flex items-center'>
         <input
           type='range'
