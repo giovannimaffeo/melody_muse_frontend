@@ -380,9 +380,9 @@ const DrawingCanvas = () => {
         </button>
         <button 
           onClick={clearCanvas} 
-          className='p-0 flex justify-center items-center bg-transparent ml-[0.6%] h-full'
+          className='p-0 flex justify-center items-center bg-transparent ml-[0.3%] h-full'
         >
-          <VscDebugRestart className='fill-white size-[80%]' />
+          <VscDebugRestart className='fill-white size-[78%]' />
         </button>
       </div>
       {openDrawingToolMenu &&
