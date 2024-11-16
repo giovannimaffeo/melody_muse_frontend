@@ -11,21 +11,21 @@ import { eraserColor, eraserSize } from '../constants/eraser';
 import { initialBrushSize } from '../constants/initialBrushSize';
 import { Stroke } from '../interfaces/stroke';
 import { rate } from '../constants/rate';
+import { Color } from '../interfaces/color';
 
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
   const [tool, setTool] = useState<'brush' | 'eraser' | 'click'>('brush');
-
   const [strokes, setStrokes] = useState<Stroke[]>([]); 
   const [currentStroke, setCurrentStroke] = useState<Stroke | undefined>();
   const [brushStyle, setBrushStyle] = useState<BrushStyle>({
     color: colors[0],
     size: initialBrushSize
   });
+  const [playingColors, setPlayingColors] = useState<Color[]>([]); 
 
   const handleChangeTool = (tool: 'brush' | 'eraser') => {
     setTool(tool);
@@ -168,7 +168,7 @@ const DrawingCanvas = () => {
     selectedStroke && animateStrokeWithSound(selectedStroke);
   };  
 
-  const animateStrokeWithSound = (stroke: Stroke) => {
+  const animateStrokeWithSound = (stroke: Stroke, shouldClear: boolean = true) => {
     const context = contextRef.current;
     if (!context) return;
   
@@ -184,8 +184,16 @@ const DrawingCanvas = () => {
     let yMin = Infinity;
     let yMax = -Infinity;
   
-    // Configurar o áudio
+    // Configurar o volume do áudio com base na largura do traço
     if (audio) {
+      const minWidth = 1;
+      const maxWidth = 50;
+  
+      // Normaliza a largura do traço para o intervalo de volume (0 a 1)
+      const volume = Math.min(Math.max((stroke.width - minWidth) / (maxWidth - minWidth), 0), 1);
+      audio.volume = volume;
+  
+      // Configurar o áudio
       audio.currentTime = 0; // Começa a tocar do início
       audio.play(); // Toca o áudio
   
@@ -213,16 +221,18 @@ const DrawingCanvas = () => {
   
     const drawStep = () => {
       if (currentIndex >= stroke.points.length - 1) {
-        // Finaliza a animação e limpa o traço
-        setTimeout(() => {
-          context.clearRect(
-            xMin - stroke.width,
-            yMin - stroke.width,
-            xMax - xMin + stroke.width * 2,
-            yMax - yMin + stroke.width * 2
-          );
-          drawOriginalStroke(); // Redesenha o traço original
-        }, 100); // Pequeno atraso para garantir a finalização
+        // Finaliza a animação
+        if (shouldClear) {
+          setTimeout(() => {
+            context.clearRect(
+              xMin - stroke.width,
+              yMin - stroke.width,
+              xMax - xMin + stroke.width * 2,
+              yMax - yMin + stroke.width * 2
+            );
+            drawOriginalStroke(); // Redesenha o traço original
+          }, 100); // Pequeno atraso para garantir a finalização
+        }
         return;
       }
   
@@ -256,7 +266,58 @@ const DrawingCanvas = () => {
   
     // Inicia a animação
     drawStep();
-  };      
+  };
+      
+  const playAllStrokes = () => {
+    const context = contextRef.current;
+    if (!context) return;
+  
+    let currentIndex = 0;
+  
+    const playNextStroke = () => {
+      if (currentIndex >= strokes.length) {
+        // Apaga todos os traços cinza e redesenha os originais
+        setTimeout(() => {
+          context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+  
+          // Redesenha todos os traços originais
+          strokes.forEach((stroke) => {
+            context.beginPath();
+            context.lineWidth = stroke.width;
+            context.strokeStyle = stroke.color.hex;
+            stroke.points.forEach((point, index) => {
+              if (index === 0) {
+                context.moveTo(point.x, point.y);
+              } else {
+                context.lineTo(point.x, point.y);
+              }
+            });
+            context.stroke();
+          });
+        }, 100); // Pequeno atraso para garantir a finalização da última animação
+        return;
+      }
+  
+      // Anima o próximo traço sem apagar ou redesenhar
+      animateStrokeWithSound(strokes[currentIndex], false);
+  
+      // Calcula o tempo para chamar o próximo traço
+      let strokeDuration = 0;
+      if (strokes && currentIndex < strokes.length) {
+        // Verifica se strokes e o índice são válidos
+        const stroke = strokes[currentIndex];
+        strokeDuration = (stroke.length ?? 0) / rate; // Calcula a duração do traço
+      };
+
+      currentIndex++;
+  
+      // Chama o próximo traço após a duração atual
+      setTimeout(playNextStroke, strokeDuration * 1000);
+    };
+  
+    // Inicia a animação do primeiro traço
+    playNextStroke();
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -298,7 +359,7 @@ const DrawingCanvas = () => {
           style={{
             backgroundColor: tool === 'eraser' ? '#F8FAFC' : 'transparent'
           }} 
-          className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.7%]'
+          className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.3%]'
         >
           <FaEraser 
             style={{ fill: tool === 'eraser' ? colors.find(option => option.name === 'purple')?.hex : 'white' }}
@@ -310,7 +371,7 @@ const DrawingCanvas = () => {
           style={{
             backgroundColor: tool === 'click' ? '#F8FAFC' : 'transparent'
           }} 
-          className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[1%]'
+          className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.5%]'
         >
           <GiClick  
             style={{ fill: tool === 'click' ? colors.find(option => option.name === 'purple')?.hex : 'white' }}
@@ -328,6 +389,8 @@ const DrawingCanvas = () => {
         <DrawingToolMenu
           brushStyle={brushStyle}
           handleChangeBrushStyle={handleChangeBrushStyle}
+          playingColors={playingColors}
+          setPlayingColors={setPlayingColors}
         />
       }
       <canvas
@@ -345,7 +408,7 @@ const DrawingCanvas = () => {
       />
       <button
         className='absolute right-12 bottom-8 bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg hover:bg-purple-600 transition duration-200'
-        onClick={() => console.log(strokes)}
+        onClick={() => {console.log(strokes); playAllStrokes()}}
       >
         Gerar Música
       </button>
