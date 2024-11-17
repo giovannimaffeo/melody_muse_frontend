@@ -1,8 +1,4 @@
 import { useRef, useEffect, useState, MouseEvent } from 'react';
-import { FaPaintBrush } from 'react-icons/fa';
-import { FaEraser } from 'react-icons/fa6';
-import { VscDebugRestart } from 'react-icons/vsc';
-import { GiClick } from "react-icons/gi";
 
 import DrawingToolMenu from '../components/DrawingToolMenu';
 import { colors } from '../constants/colors';
@@ -10,8 +6,8 @@ import { BrushStyle } from '../interfaces/brushStyle';
 import { eraserColor, eraserSize } from '../constants/eraser';
 import { initialBrushSize } from '../constants/initialBrushSize';
 import { Stroke } from '../interfaces/stroke';
-import { rate } from '../constants/rate';
 import { Color } from '../interfaces/color';
+import Header from '../components/Header';
 
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -85,17 +81,34 @@ const DrawingCanvas = () => {
   const draw = (event: any) => {
     event.preventDefault();
     if (!isDrawing) return;
-
+  
     const touch = event.touches ? event.touches[0] : event;
     const { offsetX, offsetY } = getOffset(touch);
-
-    if (contextRef.current) {
+  
+    const lastPoint = currentStroke?.points[currentStroke.points.length - 1];
+  
+    if (contextRef.current && lastPoint) {
       contextRef.current.lineTo(offsetX, offsetY);
       contextRef.current.stroke();
-
-      currentStroke && setCurrentStroke({
+  
+      const dx = offsetX - lastPoint.x;
+      const dy = offsetY - lastPoint.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+  
+      if (distance > 2) {
+        const steps = Math.ceil(distance / 2); 
+        for (let i = 1; i <= steps; i++) {
+          const x = lastPoint.x + (dx * i) / steps;
+          const y = lastPoint.y + (dy * i) / steps;
+          currentStroke.points.push({ x, y });
+        };
+      };
+  
+      currentStroke.points.push({ x: offsetX, y: offsetY });
+  
+      setCurrentStroke({
         ...currentStroke,
-        points: [...currentStroke.points, { x: offsetX, y: offsetY }]
+        points: [...currentStroke.points]
       });
     };
   };
@@ -168,155 +181,97 @@ const DrawingCanvas = () => {
     selectedStroke && animateStrokeWithSound(selectedStroke);
   };  
 
-  const animateStrokeWithSound = (stroke: Stroke, shouldClear: boolean = true) => {
+  const eraseStroke = (stroke: Stroke) => {
     const context = contextRef.current;
     if (!context) return;
-  
-    const length = stroke.length ?? 0; // Comprimento total do traço
-    const duration = length / rate; // Duração em segundos
-    const audio = stroke.color.sound;
-  
-    let currentIndex = 0;
-  
-    // Inicializa limites para limpar o traço depois
-    let xMin = Infinity;
-    let xMax = -Infinity;
-    let yMin = Infinity;
-    let yMax = -Infinity;
-  
-    // Configurar o volume do áudio com base na largura do traço
-    if (audio) {
-      const minWidth = 1;
-      const maxWidth = 50;
-  
-      // Normaliza a largura do traço para o intervalo de volume (0 a 1)
-      const volume = Math.min(Math.max((stroke.width - minWidth) / (maxWidth - minWidth), 0), 1);
-      audio.volume = volume;
-  
-      // Configurar o áudio
-      audio.currentTime = 0; // Começa a tocar do início
-      audio.play(); // Toca o áudio
-  
-      // Parar o áudio após a duração calculada
-      const stopTime = Math.min(audio.duration, duration); // Não exceder a duração do áudio
-      setTimeout(() => {
-        audio.pause();
-      }, stopTime * 1000); // Convertendo para milissegundos
-    }
-  
-    const drawOriginalStroke = () => {
-      // Redesenha o traço original após limpar o cinza
-      context.beginPath();
-      context.lineWidth = stroke.width;
-      context.strokeStyle = stroke.color.hex; // Cor original
-      stroke.points.forEach((point, index) => {
-        if (index === 0) {
-          context.moveTo(point.x, point.y);
-        } else {
-          context.lineTo(point.x, point.y);
-        }
-      });
-      context.stroke();
-    };
-  
-    const drawStep = () => {
-      if (currentIndex >= stroke.points.length - 1) {
-        // Finaliza a animação
-        if (shouldClear) {
-          setTimeout(() => {
-            context.clearRect(
-              xMin - stroke.width,
-              yMin - stroke.width,
-              xMax - xMin + stroke.width * 2,
-              yMax - yMin + stroke.width * 2
-            );
-            drawOriginalStroke(); // Redesenha o traço original
-          }, 100); // Pequeno atraso para garantir a finalização
-        }
-        return;
-      }
-  
-      const p1 = stroke.points[currentIndex];
-      const p2 = stroke.points[currentIndex + 1];
-  
-      // Atualiza os limites do traço
-      xMin = Math.min(xMin, p1.x, p2.x);
-      xMax = Math.max(xMax, p1.x, p2.x);
-      yMin = Math.min(yMin, p1.y, p2.y);
-      yMax = Math.max(yMax, p1.y, p2.y);
-  
-      // Configura o contexto para o traço
-      context.beginPath();
-      context.lineWidth = stroke.width;
-      context.strokeStyle = '#808080'; // Cinza escuro
-      context.moveTo(p1.x, p1.y);
-      context.lineTo(p2.x, p2.y);
-      context.stroke();
-  
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      const segmentLength = Math.sqrt(dx * dx + dy * dy);
-      const time = (segmentLength / rate) * 1000; // Tempo para este segmento em milissegundos
-  
-      currentIndex++;
-  
-      // Chama o próximo segmento
-      setTimeout(() => requestAnimationFrame(drawStep), time);
-    };
-  
-    // Inicia a animação
-    drawStep();
-  };
-      
-  const playAllStrokes = () => {
-    const context = contextRef.current;
-    if (!context) return;
-  
-    let currentIndex = 0;
-  
-    const playNextStroke = () => {
-      if (currentIndex >= strokes.length) {
-        // Apaga todos os traços cinza e redesenha os originais
-        setTimeout(() => {
-          context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-  
-          // Redesenha todos os traços originais
-          strokes.forEach((stroke) => {
-            context.beginPath();
-            context.lineWidth = stroke.width;
-            context.strokeStyle = stroke.color.hex;
-            stroke.points.forEach((point, index) => {
-              if (index === 0) {
-                context.moveTo(point.x, point.y);
-              } else {
-                context.lineTo(point.x, point.y);
-              }
-            });
-            context.stroke();
-          });
-        }, 100); // Pequeno atraso para garantir a finalização da última animação
-        return;
-      }
-  
-      // Anima o próximo traço sem apagar ou redesenhar
-      animateStrokeWithSound(strokes[currentIndex], false);
-  
-      // Calcula o tempo para chamar o próximo traço
-      let strokeDuration = 0;
-      if (strokes && currentIndex < strokes.length) {
-        // Verifica se strokes e o índice são válidos
-        const stroke = strokes[currentIndex];
-        strokeDuration = (stroke.length ?? 0) / rate; // Calcula a duração do traço
-      };
 
-      currentIndex++;
+    context.beginPath();
+    context.lineWidth = stroke.width;
+    context.strokeStyle = eraserColor; // Branco (ou a cor do fundo)
+    
+    stroke.points.forEach((point, index) => {
+      if (index === 0) {
+        context.moveTo(point.x, point.y);
+      } else {
+        context.lineTo(point.x, point.y);
+      }
+    });
+    
+    context.stroke();
+  };  
+
+  const drawStroke = (stroke: Stroke) => {
+    const context = contextRef.current;
+    if (!context) return;
+
+    context.beginPath();
+    context.lineWidth = stroke.width;
+    context.strokeStyle = stroke.color.hex;
+    stroke.points.forEach((point, index) => {
+      if (index === 0) {
+        context.moveTo(point.x, point.y);
+      } else {
+        context.lineTo(point.x, point.y);
+      };
+    });
+    context.stroke();
+  };
+
+  const animateStrokeWithSound = (stroke: Stroke, shouldErase: boolean = true): Promise<void> => {
+    return new Promise((resolve) => {
+      const context = contextRef.current;
+      if (!context) return resolve();
   
-      // Chama o próximo traço após a duração atual
-      setTimeout(playNextStroke, strokeDuration * 1000);
+      const audio = stroke.color.sound;
+      let currentIndex = 0;
+  
+      if (audio) {
+        const volumeRate = 1 / 50;
+        audio.volume = stroke.width * volumeRate;
+        audio.currentTime = 0;
+        audio.play();
+      }
+  
+      const drawStep = () => {
+        if (currentIndex >= stroke.points.length - 1) {
+          if (audio) audio.pause();
+          if (shouldErase) {
+            eraseStroke(stroke);
+            drawStroke(stroke);
+          }
+          return resolve();
+        }
+  
+        const p1 = stroke.points[currentIndex];
+        const p2 = stroke.points[currentIndex + 1];
+  
+        context.beginPath();
+        context.lineWidth = stroke.width;
+        context.strokeStyle = '#808080';
+        context.moveTo(p1.x, p1.y);
+        context.lineTo(p2.x, p2.y);
+        context.stroke();
+  
+        currentIndex++;
+        requestAnimationFrame(drawStep);
+      };
+  
+      drawStep();
+    });
+  };
+  
+  const playAllStrokes = async () => {
+    const context = contextRef.current;
+    if (!context) return;
+  
+    for (const stroke of strokes) {
+      await animateStrokeWithSound(stroke, false);
     };
   
-    // Inicia a animação do primeiro traço
-    playNextStroke();
+    strokes.forEach((stroke) => {
+      eraseStroke(stroke);
+      drawStroke(stroke);
+    });
   };
 
   useEffect(() => {
@@ -341,50 +296,14 @@ const DrawingCanvas = () => {
 
   return (
     <div onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col w-screen h-screen bg-white'>
-      <div className='flex bg-purple-700 h-[5%] w-full pl-[1.5%] items-center justify-center'>
-        <button 
-          onClick={() => handleChangeTool('brush')} 
-          style={{
-            backgroundColor: tool === 'brush' ? '#F8FAFC' : 'transparent'
-          }} 
-          className='p-0 h-7 w-7 flex justify-center items-center rounded-full'
-        >
-          <FaPaintBrush 
-            style={{ fill: tool === 'brush' ? brushStyle.color.hex : 'white' }}
-            className='size-[60%]'
-          />
-        </button>
-        <button 
-          onClick={() => handleChangeTool('eraser')} 
-          style={{
-            backgroundColor: tool === 'eraser' ? '#F8FAFC' : 'transparent'
-          }} 
-          className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.3%]'
-        >
-          <FaEraser 
-            style={{ fill: tool === 'eraser' ? colors.find(option => option.name === 'purple')?.hex : 'white' }}
-            className='size-[75%]' 
-          />
-        </button>
-        <button 
-          onClick={() => setTool('click')} 
-          style={{
-            backgroundColor: tool === 'click' ? '#F8FAFC' : 'transparent'
-          }} 
-          className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.5%]'
-        >
-          <GiClick  
-            style={{ fill: tool === 'click' ? colors.find(option => option.name === 'purple')?.hex : 'white' }}
-            className='size-[75%]' 
-          />
-        </button>
-        <button 
-          onClick={clearCanvas} 
-          className='p-0 flex justify-center items-center bg-transparent ml-[0.3%] h-full'
-        >
-          <VscDebugRestart className='fill-white size-[78%]' />
-        </button>
-      </div>
+      <Header
+        tool={tool}
+        brushStyle={brushStyle}
+        colors={colors}
+        handleChangeTool={handleChangeTool}
+        setTool={setTool}
+        clearCanvas={clearCanvas}
+      />
       {openDrawingToolMenu &&
         <DrawingToolMenu
           brushStyle={brushStyle}
