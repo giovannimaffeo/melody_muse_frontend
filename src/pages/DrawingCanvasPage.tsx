@@ -17,7 +17,10 @@ const DrawingCanvas = () => {
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
   const [tool, setTool] = useState<'brush' | 'eraser' | 'click'>('brush');
   const [strokes, setStrokes] = useState<Stroke[]>([]); 
+
   const [currentStroke, setCurrentStroke] = useState<Stroke | undefined>();
+  const [activeStrokes, setActiveStrokes] = useState<Stroke[]>([]);
+
   const [brushStyle, setBrushStyle] = useState<BrushStyle>({
     color: colors[0],
     size: initialBrushSize
@@ -58,19 +61,27 @@ const DrawingCanvas = () => {
 
   const startDrawing = (event: any) => {
     event.preventDefault();
-    const touch = event.touches ? event.touches[0] : event;
-    const { offsetX, offsetY } = getOffset(touch);
-    
-    contextRef.current?.beginPath();
-    contextRef.current?.moveTo(offsetX, offsetY);
-    setIsDrawing(true);
+  
+    const touches = event.touches ? Array.from(event.touches) : []; // Captura todos os toques ativos
+    const newActiveStrokes = touches.map((touch) => {
+      const { offsetX, offsetY } = getOffset(touch);
+      const touchId = touch.identifier.toString(); // Identificador único do toque
 
-    setCurrentStroke({
-      id: crypto.randomUUID(),
-      color: brushStyle.color,
-      width: brushStyle.size,
-      points: [{ x: offsetX, y: offsetY }]
+      // Inicia um novo traço para o toque atual
+      contextRef.current?.beginPath();
+      contextRef.current?.moveTo(offsetX, offsetY);
+
+      return {
+        id: touchId,
+        color: brushStyle.color,
+        width: brushStyle.size,
+        points: [{ x: offsetX, y: offsetY }],
+      };
     });
+
+    console.log(newActiveStrokes)
+    
+    setActiveStrokes(newActiveStrokes);
   };
 
   const getOffset = (touch: MouseEvent | Touch): { offsetX: number; offsetY: number } => {
@@ -85,73 +96,93 @@ const DrawingCanvas = () => {
 
   const draw = (event: any) => {
     event.preventDefault();
-    if (!isDrawing) return;
+    if (tool !== 'brush') return; // Certifica-se de que estamos no modo de brush
   
-    const touch = event.touches ? event.touches[0] : event;
-    const { offsetX, offsetY } = getOffset(touch);
-
-    if (tool === 'brush') {
-      const lastPoint = currentStroke?.points[currentStroke.points.length - 1];
+    const touches = event.touches ? Array.from(event.touches) : []; // Captura todos os toques ativos
+    setActiveStrokes((prevStrokes) => {
+      const updatedStrokes = prevStrokes.map((stroke) => {
+        // Procura o toque correspondente ao traço
+        const touch = touches.find((t) => t.identifier.toString() === stroke.id);
+        if (!touch) return stroke; // Se não encontrar o toque correspondente, mantém o traço atual
   
-      if (contextRef.current && lastPoint) {
-        contextRef.current.lineTo(offsetX, offsetY);
-        contextRef.current.stroke();
-    
-        const dx = offsetX - lastPoint.x;
-        const dy = offsetY - lastPoint.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-    
-        if (distance > 2) {
-          const steps = Math.ceil(distance / 2); 
-          for (let i = 1; i <= steps; i++) {
-            const x = lastPoint.x + (dx * i) / steps;
-            const y = lastPoint.y + (dy * i) / steps;
-            currentStroke.points.push({ x, y });
-          };
+        const { offsetX, offsetY } = getOffset(touch);
+  
+        const lastPoint = stroke.points[stroke.points.length - 1];
+        if (contextRef.current && lastPoint) {
+          contextRef.current.beginPath();
+          contextRef.current.moveTo(lastPoint.x, lastPoint.y);
+          contextRef.current.lineTo(offsetX, offsetY);
+          contextRef.current.lineWidth = stroke.width;
+          contextRef.current.strokeStyle = stroke.color.hex;
+          contextRef.current.stroke();
+  
+          // Adiciona interpolação entre pontos para suavidade
+          const dx = offsetX - lastPoint.x;
+          const dy = offsetY - lastPoint.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+  
+          if (distance > 2) {
+            const steps = Math.ceil(distance / 2);
+            for (let i = 1; i <= steps; i++) {
+              const x = lastPoint.x + (dx * i) / steps;
+              const y = lastPoint.y + (dy * i) / steps;
+              stroke.points.push({ x, y });
+            }
+          }
+  
+          stroke.points.push({ x: offsetX, y: offsetY });
+        }
+  
+        return {
+          ...stroke,
+          points: [...stroke.points],
         };
-    
-        currentStroke.points.push({ x: offsetX, y: offsetY });
-    
-        setCurrentStroke({
-          ...currentStroke,
-          points: [...currentStroke.points]
-        });
-      };
+      });
+  
+      return updatedStrokes;
+    });
+  };  
+
+  const calculateStrokeLengthInPixels = (points: { x: number; y: number }[]) => {
+    if (points.length < 2) return 0; 
+  
+    let length = 0;
+  
+    for (let i = 1; i < points.length; i++) {
+      const p1 = points[i - 1];
+      const p2 = points[i];
+  
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+  
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      length += distance;
     };
+  
+    return Math.round(length); 
   };
 
-  const calculateStrokeLengthInPixels = () => {
-    if (currentStroke) {
-      const { points } = currentStroke;
-      if (points.length < 2) return 0; 
+  const finishDrawing = (event: any) => {
+    event.preventDefault();
+  
+    const touches = event.changedTouches ? Array.from(event.changedTouches) : []; // Toques finalizados  
     
-      let length = 0;
-    
-      for (let i = 1; i < points.length; i++) {
-        const p1 = points[i - 1];
-        const p2 = points[i];
-    
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-    
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        length += distance;
-      };
-    
-      return Math.round(length); 
-    };
-  };
+    let completedStrokes: Stroke[] = [];
+    touches.forEach((touch) => {
+      activeStrokes.forEach((activeStroke) => {
+        const touchId = touch.identifier.toString(); // Identificador do toque
+  
+        if (touchId === activeStroke.id) {
+          const length = calculateStrokeLengthInPixels(activeStroke.points);
+  
+          // Adiciona o traço finalizado à lista
+          completedStrokes = [...completedStrokes, {...activeStroke, id: crypto.randomUUID(), length}]  
+        };
+      });
+    });
 
-  const finishDrawing = () => {
-    contextRef.current?.closePath();
-    setIsDrawing(false);
-
-    const length = calculateStrokeLengthInPixels();
-    if (length && currentStroke) {
-      setStrokes([...strokes, { ...currentStroke, length }]);
-      setCurrentStroke(undefined);
-    };
-  };
+    setStrokes([...strokes, ...completedStrokes]) 
+  };  
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
@@ -185,6 +216,8 @@ const DrawingCanvas = () => {
     };
 
     if (reorganizeStrokesMode) {
+      console.log('strokes', strokes)
+      console.log('selectedStroke', selectedStroke);
       selectedStroke && addToReorganizedStrokes(selectedStroke);
     } else if (tool === 'eraser') {
       selectedStroke && eraseStroke(selectedStroke);
@@ -274,6 +307,8 @@ const DrawingCanvas = () => {
   };
   
   const playAllStrokes = async (playStrokes: Stroke[] = strokes) => {
+    console.log(strokes);
+
     for (const stroke of playStrokes) {
       await animateStrokeWithSound(stroke, false);
     };
