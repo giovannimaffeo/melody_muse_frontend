@@ -9,18 +9,15 @@ import { Stroke } from '../interfaces/stroke';
 import { Color } from '../interfaces/color';
 import Header from '../components/Header';
 import MusicGenerationPopup from '../components/MusicGenerationPopup';
+import { backgroundAudio } from '../constants/backgroundAudio';
 
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
   const [tool, setTool] = useState<'brush' | 'eraser' | 'click'>('brush');
   const [strokes, setStrokes] = useState<Stroke[]>([]); 
-
-  const [currentStroke, setCurrentStroke] = useState<Stroke | undefined>();
   const [activeStrokes, setActiveStrokes] = useState<Stroke[]>([]);
-
   const [brushStyle, setBrushStyle] = useState<BrushStyle>({
     color: colors[0],
     size: initialBrushSize
@@ -63,7 +60,7 @@ const DrawingCanvas = () => {
     event.preventDefault();
   
     const touches = event.touches ? Array.from(event.touches) : []; // Captura todos os toques ativos
-    const newActiveStrokes = touches.map((touch) => {
+    const newActiveStrokes = touches.map((touch: any) => {
       const { offsetX, offsetY } = getOffset(touch);
       const touchId = touch.identifier.toString(); // Identificador único do toque
 
@@ -84,7 +81,7 @@ const DrawingCanvas = () => {
     setActiveStrokes(newActiveStrokes);
   };
 
-  const getOffset = (touch: MouseEvent | Touch): { offsetX: number; offsetY: number } => {
+  const getOffset = (touch: any) => {
     const canvas = canvasRef.current;
     if (!canvas) throw new Error('Canvas not found');
     const rect = canvas.getBoundingClientRect();
@@ -102,7 +99,7 @@ const DrawingCanvas = () => {
     setActiveStrokes((prevStrokes) => {
       const updatedStrokes = prevStrokes.map((stroke) => {
         // Procura o toque correspondente ao traço
-        const touch = touches.find((t) => t.identifier.toString() === stroke.id);
+        const touch = touches.find((t: any) => t.identifier.toString() === stroke.id);
         if (!touch) return stroke; // Se não encontrar o toque correspondente, mantém o traço atual
   
         const { offsetX, offsetY } = getOffset(touch);
@@ -168,7 +165,7 @@ const DrawingCanvas = () => {
     const touches = event.changedTouches ? Array.from(event.changedTouches) : []; // Toques finalizados  
     
     let completedStrokes: Stroke[] = [];
-    touches.forEach((touch) => {
+    touches.forEach((touch: any) => {
       activeStrokes.forEach((activeStroke) => {
         const touchId = touch.identifier.toString(); // Identificador do toque
   
@@ -189,8 +186,8 @@ const DrawingCanvas = () => {
     const context = contextRef.current;
     if (canvas && context) {
       context.clearRect(0, 0, canvas.width, canvas.height);
+      setActiveStrokes([]);
       setStrokes([]);
-      setCurrentStroke(undefined);
     };
   };
 
@@ -309,6 +306,9 @@ const DrawingCanvas = () => {
   const playAllStrokes = async (playStrokes: Stroke[] = strokes) => {
     console.log(strokes);
 
+    backgroundAudio.volume = 0.5; 
+    backgroundAudio.play();
+
     for (const stroke of playStrokes) {
       await animateStrokeWithSound(stroke, false);
     };
@@ -317,6 +317,9 @@ const DrawingCanvas = () => {
       eraseStroke(stroke);
       drawStroke(stroke);
     });
+
+    backgroundAudio.pause(); 
+    backgroundAudio.currentTime = 0; 
   };
 
   const addToReorganizedStrokes = async (selectedStroke: Stroke) => {
