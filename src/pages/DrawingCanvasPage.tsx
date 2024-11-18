@@ -62,6 +62,7 @@ const DrawingCanvas = () => {
     setIsDrawing(true);
 
     setCurrentStroke({
+      id: crypto.randomUUID(),
       color: brushStyle.color,
       width: brushStyle.size,
       points: [{ x: offsetX, y: offsetY }]
@@ -84,32 +85,34 @@ const DrawingCanvas = () => {
   
     const touch = event.touches ? event.touches[0] : event;
     const { offsetX, offsetY } = getOffset(touch);
+
+    if (tool === 'brush') {
+      const lastPoint = currentStroke?.points[currentStroke.points.length - 1];
   
-    const lastPoint = currentStroke?.points[currentStroke.points.length - 1];
-  
-    if (contextRef.current && lastPoint) {
-      contextRef.current.lineTo(offsetX, offsetY);
-      contextRef.current.stroke();
-  
-      const dx = offsetX - lastPoint.x;
-      const dy = offsetY - lastPoint.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-  
-      if (distance > 2) {
-        const steps = Math.ceil(distance / 2); 
-        for (let i = 1; i <= steps; i++) {
-          const x = lastPoint.x + (dx * i) / steps;
-          const y = lastPoint.y + (dy * i) / steps;
-          currentStroke.points.push({ x, y });
+      if (contextRef.current && lastPoint) {
+        contextRef.current.lineTo(offsetX, offsetY);
+        contextRef.current.stroke();
+    
+        const dx = offsetX - lastPoint.x;
+        const dy = offsetY - lastPoint.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+    
+        if (distance > 2) {
+          const steps = Math.ceil(distance / 2); 
+          for (let i = 1; i <= steps; i++) {
+            const x = lastPoint.x + (dx * i) / steps;
+            const y = lastPoint.y + (dy * i) / steps;
+            currentStroke.points.push({ x, y });
+          };
         };
+    
+        currentStroke.points.push({ x: offsetX, y: offsetY });
+    
+        setCurrentStroke({
+          ...currentStroke,
+          points: [...currentStroke.points]
+        });
       };
-  
-      currentStroke.points.push({ x: offsetX, y: offsetY });
-  
-      setCurrentStroke({
-        ...currentStroke,
-        points: [...currentStroke.points]
-      });
     };
   };
 
@@ -176,9 +179,13 @@ const DrawingCanvas = () => {
         };
       };
     };
-  
-    console.log(selectedStroke);
-    selectedStroke && animateStrokeWithSound(selectedStroke);
+
+    if (tool === 'click') {
+      selectedStroke && animateStrokeWithSound(selectedStroke);
+    } else {
+      selectedStroke && eraseStroke(selectedStroke);
+      selectedStroke && setStrokes(() => strokes.filter((stroke) => stroke.id !== selectedStroke.id));
+    };
   };  
 
   const eraseStroke = (stroke: Stroke) => {
@@ -186,8 +193,8 @@ const DrawingCanvas = () => {
     if (!context) return;
 
     context.beginPath();
-    context.lineWidth = stroke.width;
-    context.strokeStyle = eraserColor; // Branco (ou a cor do fundo)
+    context.lineWidth = stroke.width + 1;
+    context.strokeStyle = eraserColor; 
     
     stroke.points.forEach((point, index) => {
       if (index === 0) {
@@ -323,7 +330,7 @@ const DrawingCanvas = () => {
         onMouseLeave={tool === 'click' ? undefined : finishDrawing}
         className='h-[95%] w-full'
         style={{ touchAction: 'none' }}
-        onClick={tool === 'click' ? handleCanvasClick : undefined}
+        onClick={tool !== 'brush' ? handleCanvasClick : undefined}
       />
       <button
         className='absolute right-12 bottom-8 bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg hover:bg-purple-600 transition duration-200'
