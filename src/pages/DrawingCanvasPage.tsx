@@ -187,10 +187,10 @@ const DrawingCanvas = () => {
     if (reorganizeStrokesMode) {
       selectedStroke && addToReorganizedStrokes(selectedStroke);
     } else if (tool === 'eraser') {
-      selectedStroke && animateStrokeWithSound(selectedStroke);
-    } else {
       selectedStroke && eraseStroke(selectedStroke);
       selectedStroke && setStrokes(() => strokes.filter((stroke) => stroke.id !== selectedStroke.id));
+    } else {
+      selectedStroke && animateStrokeWithSound(selectedStroke);     
     };
   };  
 
