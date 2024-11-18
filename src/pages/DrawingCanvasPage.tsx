@@ -8,6 +8,7 @@ import { initialBrushSize } from '../constants/initialBrushSize';
 import { Stroke } from '../interfaces/stroke';
 import { Color } from '../interfaces/color';
 import Header from '../components/Header';
+import MusicGenerationPopup from '../components/MusicGenerationPopup';
 
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -22,6 +23,9 @@ const DrawingCanvas = () => {
     size: initialBrushSize
   });
   const [playingColors, setPlayingColors] = useState<Color[]>([]); 
+  const [showPopup, setShowPopup] = useState(false);
+  const [reorganizeStrokesMode, setReorganizeStrokesMode] = useState(false);
+  const [reorganizedStrokes, setReorganizedStrokes] = useState<Stroke[]>([]);
 
   const handleChangeTool = (tool: 'brush' | 'eraser') => {
     setTool(tool);
@@ -180,7 +184,9 @@ const DrawingCanvas = () => {
       };
     };
 
-    if (tool === 'click') {
+    if (reorganizeStrokesMode) {
+      selectedStroke && addToReorganizedStrokes(selectedStroke);
+    } else if (tool === 'eraser') {
       selectedStroke && animateStrokeWithSound(selectedStroke);
     } else {
       selectedStroke && eraseStroke(selectedStroke);
@@ -267,19 +273,32 @@ const DrawingCanvas = () => {
     });
   };
   
-  const playAllStrokes = async () => {
-    const context = contextRef.current;
-    if (!context) return;
-  
-    for (const stroke of strokes) {
+  const playAllStrokes = async (playStrokes: Stroke[] = strokes) => {
+    for (const stroke of playStrokes) {
       await animateStrokeWithSound(stroke, false);
     };
   
-    strokes.forEach((stroke) => {
+    playStrokes.forEach((stroke) => {
       eraseStroke(stroke);
       drawStroke(stroke);
     });
   };
+
+  const addToReorganizedStrokes = async (selectedStroke: Stroke) => {
+    const strokeInReorganized = reorganizedStrokes.some((stroke) => stroke.id === selectedStroke.id);
+
+    if (!strokeInReorganized) {
+      if (reorganizedStrokes.length + 1 !== strokes.length) {
+        setReorganizedStrokes([...reorganizedStrokes, selectedStroke]);
+      } else {
+        setReorganizeStrokesMode(false);
+        playAllStrokes([...reorganizedStrokes, selectedStroke])
+        setReorganizedStrokes([]);
+      };
+    };
+  };
+
+  const isDrawMode = tool === 'brush' && !reorganizeStrokesMode;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -302,7 +321,14 @@ const DrawingCanvas = () => {
   }, []);
 
   return (
-    <div onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col w-screen h-screen bg-white'>
+    <div onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col w-screen h-screen bg-white'>  
+      {showPopup && (
+        <MusicGenerationPopup
+          onClose={() => setShowPopup(false)}
+          onPlayInOrder={playAllStrokes}
+          onReorganizeAndPlay={() => setReorganizeStrokesMode(true)}
+        />
+      )}
       <Header
         tool={tool}
         brushStyle={brushStyle}
@@ -321,23 +347,24 @@ const DrawingCanvas = () => {
       }
       <canvas
         ref={canvasRef}
-        onTouchStart={tool === 'click' ? undefined : startDrawing}
-        onTouchMove={tool === 'click' ? undefined : draw}
-        onTouchEnd={tool === 'click' ? undefined : finishDrawing}
-        onMouseDown={tool === 'click' ? undefined : startDrawing}
-        onMouseMove={tool === 'click' ? undefined : draw}
-        onMouseUp={tool === 'click' ? undefined : finishDrawing}
-        onMouseLeave={tool === 'click' ? undefined : finishDrawing}
+        onTouchStart={!isDrawMode ? undefined : startDrawing}
+        onTouchMove={!isDrawMode ? undefined : draw}
+        onTouchEnd={!isDrawMode ? undefined : finishDrawing}
+        onMouseDown={!isDrawMode ? undefined : startDrawing}
+        onMouseMove={!isDrawMode ? undefined : draw}
+        onMouseUp={!isDrawMode ? undefined : finishDrawing}
+        onMouseLeave={!isDrawMode ? undefined : finishDrawing}
         className='h-[95%] w-full'
         style={{ touchAction: 'none' }}
-        onClick={tool !== 'brush' ? handleCanvasClick : undefined}
+        onClick={!isDrawMode ? handleCanvasClick : undefined}
       />
+      {!reorganizeStrokesMode && 
       <button
         className='absolute right-12 bottom-8 bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg hover:bg-purple-600 transition duration-200'
-        onClick={() => {console.log(strokes); playAllStrokes()}}
+        onClick={() => {console.log(strokes); setShowPopup(true)}}
       >
         Gerar Música
-      </button>
+      </button>}
     </div>
   );
 };
