@@ -59,12 +59,14 @@ const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({
         {colors.map((colorOption) => (
           <div className='flex flex-col' key={colorOption.hex}>
             <button 
-              onClick={() => handleChangeBrushStyle('color', colorOption)}
+              onMouseDown={() => handleChangeBrushStyle('color', colorOption)}
+              onTouchStart={() => handleChangeBrushStyle('color', colorOption)}
               style={{ backgroundColor: colorOption.hex }}
               className='p-0 w-5 h-5 rounded' 
             />
             <button
-              onClick={() => handlePlayStopColor(colorOption)}
+              onMouseDown={() => handlePlayStopColor(colorOption)}
+              onTouchStart={() => handlePlayStopColor(colorOption)}
               className='p-0 w-5 h-5 mt-1 rounded-full flex justify-center items-center shadow-md bg-transparent'
             >
               {isPlayingColor(colorOption) ? <FaRegCircleStop size={15} /> : <AiOutlineSound size={15} />}

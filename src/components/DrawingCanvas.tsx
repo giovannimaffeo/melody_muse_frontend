@@ -9,6 +9,7 @@ import { initialBrushSize } from '../constants/initialBrushSize';
 import { Stroke } from '../interfaces/stroke';
 import { Color } from '../interfaces/color';
 import { InteractionInput } from '../interfaces/interactionInput';
+import { touchEventTypes } from '../constants/touchEventTypes';
 
 interface DrawingCanvasProps {
   isFullSize?: boolean; 
@@ -30,7 +31,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
 
   const handleChangeTool = (tool: 'brush' | 'eraser') => {
     setTool(tool);
-    isToolBrush && setOpenDrawingToolMenu(!openDrawingToolMenu);
+    isToolBrush && setOpenDrawingToolMenu(true);
 
     if (contextRef.current) {
       contextRef.current.strokeStyle = isToolBrush ? brushStyle.color.hex : eraserColor;
@@ -56,12 +57,20 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
     };
   };
 
-  const formatInteractionInputs = (event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent> | React.TouchEvent<HTMLCanvasElement>) => {
-    if ('touches' in event) {
-      return Array.from(event.touches).map((touch) => ({
+  const formatInteractionInputs = (event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent> | React.TouchEvent<HTMLCanvasElement>) => {    
+    if (touchEventTypes.includes(event.type)) {
+      const touchEvent = event as React.TouchEvent;
+      let touchList;
+      if (touchEvent.type === touchEventTypes[2]) {
+        touchList = touchEvent.changedTouches;
+      } else {
+        touchList = touchEvent.touches;
+      };
+  
+      return Array.from(touchList).map((touch) => ({
         id: touch.identifier.toString(),
         clientX: touch.clientX,
-        clientY: touch.clientY
+        clientY: touch.clientY,
       }));
     } else {
       return [{
@@ -75,10 +84,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
   const startDrawing: React.MouseEventHandler<HTMLCanvasElement> & React.TouchEventHandler<HTMLCanvasElement> = (event) => {
     event.preventDefault();
     let inputs = formatInteractionInputs(event);
-
-    console.log(event)
-
-    console.log("inputs", inputs)
 
     const newActiveStrokes = inputs.map((input: InteractionInput) => {
       const { offsetX, offsetY } = getOffset(input);
@@ -202,32 +207,35 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
 
   const handleCanvasClick: React.MouseEventHandler<HTMLCanvasElement> & React.TouchEventHandler<HTMLCanvasElement> = (event) => {
     const inputs = formatInteractionInputs(event);
-    const { offsetX, offsetY } = getOffset(inputs[0]);
-  
-    const tolerance = 5; 
-    let selectedStroke;
-    for (let i = 0; i < strokes.length; i++) {
-      const stroke = strokes[i];
-  
-      for (let j = 0; j < stroke.points.length; j++) {
-        const point = stroke.points[j];
-  
-        if (
-          Math.abs(point.x - offsetX) <= tolerance &&
-          Math.abs(point.y - offsetY) <= tolerance
-        ) {
-          selectedStroke = stroke; 
-          break;
+
+    inputs.forEach((input) => {
+      const { offsetX, offsetY } = getOffset(input);
+
+      const tolerance = 5; 
+      let selectedStroke;
+      for (let i = 0; i < strokes.length; i++) {
+        const stroke = strokes[i];
+    
+        for (let j = 0; j < stroke.points.length; j++) {
+          const point = stroke.points[j];
+    
+          if (
+            Math.abs(point.x - offsetX) <= tolerance &&
+            Math.abs(point.y - offsetY) <= tolerance
+          ) {
+            selectedStroke = stroke; 
+            break;
+          };
         };
       };
-    };
 
-    if (tool === 'eraser') {
-      selectedStroke && eraseStroke(selectedStroke);
-      selectedStroke && setStrokes(() => strokes.filter((stroke) => stroke.id !== selectedStroke.id));
-    } else {
-      selectedStroke && animateStrokeWithSound(selectedStroke);     
-    };
+      if (tool === 'eraser') {
+        selectedStroke && eraseStroke(selectedStroke);
+        selectedStroke && setStrokes(() => strokes.filter((stroke) => stroke.id !== selectedStroke.id));
+      } else {
+        selectedStroke && animateStrokeWithSound(selectedStroke);     
+      };
+    });
   };  
 
   const eraseStroke = (stroke: Stroke) => {
@@ -342,7 +350,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
   }, []);
 
   return (
-    <div onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col bg-white'>  
+    <div className='flex flex-col bg-white'>  
       <Header
         tool={tool}
         brushStyle={brushStyle}
@@ -351,27 +359,31 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
         setTool={setTool}
         clearCanvas={clearCanvas}
       />
-      {openDrawingToolMenu &&
-        <DrawingToolMenu
-          brushStyle={brushStyle}
-          handleChangeBrushStyle={handleChangeBrushStyle}
-          playingColors={playingColors}
-          setPlayingColors={setPlayingColors}
-          position={getDrawingToolPosition()}
+      <div
+        onMouseDown={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} 
+        onTouchStart={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} 
+      >
+        {openDrawingToolMenu &&
+          <DrawingToolMenu
+            brushStyle={brushStyle}
+            handleChangeBrushStyle={handleChangeBrushStyle}
+            playingColors={playingColors}
+            setPlayingColors={setPlayingColors}
+            position={getDrawingToolPosition()}
+          />
+        }
+        <canvas
+          ref={canvasRef}
+          onTouchStart={!isToolBrush ? handleCanvasClick : startDrawing}
+          onTouchMove={!isToolBrush ? undefined : draw}
+          onTouchEnd={!isToolBrush ? undefined : finishDrawing}
+          onMouseDown={!isToolBrush ? handleCanvasClick : startDrawing}
+          onMouseMove={!isToolBrush ? undefined : draw}
+          onMouseUp={!isToolBrush ? undefined : finishDrawing}
+          onMouseLeave={!isToolBrush ? undefined : finishDrawing}
+          style={{ touchAction: 'none' }}
         />
-      }
-      <canvas
-        ref={canvasRef}
-        onTouchStart={!isToolBrush ? undefined : startDrawing}
-        onTouchMove={!isToolBrush ? undefined : draw}
-        onTouchEnd={!isToolBrush ? undefined : finishDrawing}
-        onMouseDown={!isToolBrush ? undefined : startDrawing}
-        onMouseMove={!isToolBrush ? undefined : draw}
-        onMouseUp={!isToolBrush ? undefined : finishDrawing}
-        onMouseLeave={!isToolBrush ? undefined : finishDrawing}
-        style={{ touchAction: 'none' }}
-        onClick={!isToolBrush ? handleCanvasClick : undefined}
-      />
+      </div>
     </div>
   );
 };

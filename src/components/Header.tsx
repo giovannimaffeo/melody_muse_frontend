@@ -25,7 +25,8 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <div className="flex bg-purple-700 h-[5vh] w-full pl-[1.5%] items-center justify-center">
 			<button
-				onClick={() => handleChangeTool('brush')}
+				onMouseDown={() => handleChangeTool('brush')}
+				onTouchStart={() => handleChangeTool('brush')}
 				style={{
 					backgroundColor: tool === 'brush' ? '#F8FAFC' : 'transparent',
 				}}
@@ -37,7 +38,8 @@ const Header: React.FC<HeaderProps> = ({
 				/>
 			</button>
 			<button
-				onClick={() => handleChangeTool('eraser')}
+				onMouseDown={() => handleChangeTool('eraser')}
+				onTouchStart={() => handleChangeTool('eraser')}
 				style={{
 					backgroundColor: tool === 'eraser' ? '#F8FAFC' : 'transparent',
 				}}
@@ -51,7 +53,8 @@ const Header: React.FC<HeaderProps> = ({
 				/>
 			</button>
 			<button
-				onClick={() => setTool('click')}
+				onMouseDown={() => setTool('click')}
+				onTouchStart={() => setTool('click')}
 				style={{
 					backgroundColor: tool === 'click' ? '#F8FAFC' : 'transparent',
 				}}
@@ -65,7 +68,8 @@ const Header: React.FC<HeaderProps> = ({
 				/>
 			</button>
 			<button
-				onClick={clearCanvas}
+				onMouseDown={clearCanvas}
+				onTouchStart={clearCanvas}
 				className="p-0 flex justify-center items-center bg-transparent ml-[0.3%] h-full"
 			>
 				<VscDebugRestart className="fill-white size-[78%]" />
