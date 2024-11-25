@@ -13,9 +13,19 @@ import { touchEventTypes } from '../constants/touchEventTypes';
 
 interface DrawingCanvasProps {
   isFullSize?: boolean; 
+  isReadOnly?: boolean;
+  addCompletedStrokes?: (completedStrokes: Stroke[]) => void;
+  removeCompletedStroke?: (stroke: Stroke) => void; 
+  removeAllCompletedStrokes?: () => void;
 };
 
-const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
+const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ 
+  isFullSize = true, 
+  isReadOnly = false, 
+  addCompletedStrokes, 
+  removeCompletedStroke,
+  removeAllCompletedStrokes
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
@@ -191,6 +201,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
     });
 
     setStrokes([...strokes, ...completedStrokes]);
+    addCompletedStrokes && addCompletedStrokes(completedStrokes)
     const updateActiveStrokes = activeStrokes.filter((stroke) => !completedStrokeIds.includes(stroke.id));
     setActiveStrokes(updateActiveStrokes);
   };  
@@ -202,6 +213,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
       context.clearRect(0, 0, canvas.width, canvas.height);
       setActiveStrokes([]);
       setStrokes([]);
+      removeAllCompletedStrokes && removeAllCompletedStrokes();
     };
   };
 
@@ -232,6 +244,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
       if (tool === 'eraser') {
         selectedStroke && eraseStroke(selectedStroke);
         selectedStroke && setStrokes(() => strokes.filter((stroke) => stroke.id !== selectedStroke.id));
+        removeCompletedStroke && selectedStroke && removeCompletedStroke(selectedStroke)
       } else {
         selectedStroke && animateStrokeWithSound(selectedStroke);     
       };
