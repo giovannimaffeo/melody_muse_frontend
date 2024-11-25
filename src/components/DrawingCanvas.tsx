@@ -359,7 +359,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       context.lineWidth = brushStyle.size;
       context.strokeStyle = brushStyle.color.hex;
       contextRef.current = context;
-    }
+    };
   }, []);
 
   return (

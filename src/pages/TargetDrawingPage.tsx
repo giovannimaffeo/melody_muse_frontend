@@ -11,8 +11,6 @@ const TargetDrawingPage: React.FC = () => {
   const { targetStrokes, setTargetStrokes } = useDrawingContext();
 
   const onClick = () => {
-    console.log(targetStrokes)
-    console.log('passar página para colaborativo')
     navigate('/cutdown');
   };
 
