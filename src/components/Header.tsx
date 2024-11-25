@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({
 			<button
 				onClick={() => handleChangeTool('brush')}
 				style={{
-				backgroundColor: tool === 'brush' ? '#F8FAFC' : 'transparent',
+					backgroundColor: tool === 'brush' ? '#F8FAFC' : 'transparent',
 				}}
 				className="p-0 h-7 w-7 flex justify-center items-center rounded-full"
 			>
@@ -39,13 +39,13 @@ const Header: React.FC<HeaderProps> = ({
 			<button
 				onClick={() => handleChangeTool('eraser')}
 				style={{
-				backgroundColor: tool === 'eraser' ? '#F8FAFC' : 'transparent',
+					backgroundColor: tool === 'eraser' ? '#F8FAFC' : 'transparent',
 				}}
 				className="p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.3%]"
 			>
 				<FaEraser
 				style={{
-						fill: tool === 'eraser' ? colors.find(option => option.name === 'purple')?.hex : 'white',
+					fill: tool === 'eraser' ? colors.find(option => option.name === 'purple')?.hex : 'white',
 				}}
 				className="size-[75%]"
 				/>
@@ -53,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({
 			<button
 				onClick={() => setTool('click')}
 				style={{
-				backgroundColor: tool === 'click' ? '#F8FAFC' : 'transparent',
+					backgroundColor: tool === 'click' ? '#F8FAFC' : 'transparent',
 				}}
 				className="p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.5%]"
 			>
