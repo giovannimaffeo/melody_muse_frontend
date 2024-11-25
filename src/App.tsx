@@ -1,13 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
 import HomePage from './pages/HomePage';
-import DrawingCanvasPage from './pages/DrawingCanvasPage';
+import TargetDrawingPage from './pages/TargetDrawingPage';
 
 const App = () => {
   return (
     <Router>
       <Routes>
         <Route path='/' element={<HomePage />} />
-        <Route path='/drawing' element={<DrawingCanvasPage />} />
+        <Route path='/target-drawing' element={<TargetDrawingPage />} />
       </Routes>
     </Router>
   );

@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({
   clearCanvas
 }) => {
   return (
-    <div className="flex bg-purple-700 h-[5%] w-full pl-[1.5%] items-center justify-center">
+    <div className="flex bg-purple-700 h-[5vh] w-full pl-[1.5%] items-center justify-center">
 			<button
 				onClick={() => handleChangeTool('brush')}
 				style={{
