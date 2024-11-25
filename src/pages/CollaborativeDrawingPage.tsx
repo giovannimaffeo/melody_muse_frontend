@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import DrawingCanvas from '../components/DrawingCanvas';
 import FinishDrawButton from '../components/FinishDrawButton';
 import Timer from '../components/Timer';
-import CollaborativePopup from '../components/TimeUpPopup';
+import CollaborativePopup from '../components/CollaborativePopup';
 
 const CollaborativeDrawingPage: React.FC = () => {
   const [showTimeUp, setShowTimeUp] = useState(false);
