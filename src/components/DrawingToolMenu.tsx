@@ -11,13 +11,15 @@ interface DrawingToolMenuProps {
   handleChangeBrushStyle: <K extends keyof BrushStyle>(key: K, value: BrushStyle[K]) => void;
   playingColors: Color[];
   setPlayingColors: React.Dispatch<React.SetStateAction<Color[]>>;
+  position: { top: number; left: number };
 };
 
 const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({ 
   brushStyle, 
   handleChangeBrushStyle,
   playingColors,
-  setPlayingColors
+  setPlayingColors,
+  position
 }) => {
   const isPlayingColor = (colorOption: Color) => {
     return playingColors.some((playingColor) => playingColor.name === colorOption.name);
@@ -42,7 +44,7 @@ const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({
   };
 
   return (
-    <div className='absolute top-[6%] left-[43%] bg-gray-700 text-white px-4 pt-4 pb-2 rounded-lg shadow-lg flex flex-col gap-2'>
+    <div style={{ position: 'absolute', top: position.top, left: position.left }} className='bg-gray-700 text-white px-4 pt-4 pb-2 rounded-lg shadow-lg flex flex-col gap-2'>
       <div className='flex items-center'>
         <input
           type='range'

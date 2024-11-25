@@ -309,6 +309,17 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
     });
   };
 
+  const getDrawingToolPosition = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) throw new Error('Canvas not found');
+  
+    const rect = canvas.getBoundingClientRect();   
+    return {
+      top: rect.top + 2, 
+      left: rect.left + (rect.width / 2) - (rect.width * (isFullSize ? 0.06 : 0.13))
+    }; 
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -331,7 +342,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
   }, []);
 
   return (
-    <div style={{ width: isFullSize ? '100%' : '50%' }} onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col bg-white'>  
+    <div onClick={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} className='flex flex-col bg-white'>  
       <Header
         tool={tool}
         brushStyle={brushStyle}
@@ -346,6 +357,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
           handleChangeBrushStyle={handleChangeBrushStyle}
           playingColors={playingColors}
           setPlayingColors={setPlayingColors}
+          position={getDrawingToolPosition()}
         />
       }
       <canvas
@@ -360,13 +372,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isFullSize = true }) => {
         style={{ touchAction: 'none' }}
         onClick={!isToolBrush ? handleCanvasClick : undefined}
       />
-      {isFullSize &&
-      <button
-        className='absolute right-12 bottom-8 bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg hover:bg-purple-600 transition duration-200'
-        onClick={() => console.log("finalizou")}
-      >
-        Finalizar desenho
-      </button>}
     </div>
   );
 };
