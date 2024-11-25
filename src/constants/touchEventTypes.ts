@@ -1,0 +1,1 @@
+export const touchEventTypes = ['touchstart', 'touchmove', 'touchend'];
