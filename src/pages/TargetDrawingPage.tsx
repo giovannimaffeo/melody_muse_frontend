@@ -11,7 +11,7 @@ const TargetDrawingPage: React.FC = () => {
   const { targetStrokes, setTargetStrokes } = useDrawingContext();
 
   const onClick = () => {
-    navigate('/cutdown');
+    navigate('/countdown');
   };
 
   const addCompletedStrokes = (completedStrokes: Stroke[]) => {

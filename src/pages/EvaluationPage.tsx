@@ -7,16 +7,14 @@ import { Stroke } from '../interfaces/stroke';
 import OutlineButton from '../components/OutlineButton';
 import FilledButton from '../components/FilledButton';
 import CollaborativeDrawingCanvas from '../components/CollaborativeDrawingCanvas';
+import EvaluationPopup from '../components/EvaluationPopup';
 
 const EvaluationPage: React.FC = () => {
   const navigate = useNavigate();
-  const { targetStrokes, setTargetStrokes, collaborativeStrokes } = useDrawingContext();
+  const { targetStrokes, setTargetStrokes, collaborativeStrokes, setCollaborativeStrokes } = useDrawingContext();
   const [visualizationMode, setVisualizationMode] = useState<'target' | 'collaborative'>('target');
   const isTargetVisualizationMode = visualizationMode === 'target';
-
-  const onClick = () => {
-    navigate('/cutdown');
-  };
+  const [showEvaluation, setShowEvaluation] = useState(false);
 
   const addCompletedStrokes = (completedStrokes: Stroke[]) => {
     setTargetStrokes([...targetStrokes, ...completedStrokes]);
@@ -52,14 +50,21 @@ const EvaluationPage: React.FC = () => {
     };
   };
 
+  const restart = () => {
+    setTargetStrokes([]);
+    setCollaborativeStrokes([]);
+    navigate('/');
+  };
+
   return (
     <>
+      {showEvaluation && <EvaluationPopup onRestart={() => restart()} />}
       {getCanvas()}
       <OutlineButton 
         title={isTargetVisualizationMode ? 'Desenho colaborativo' : 'Desenho alvo'}
         onClick={() => setVisualizationMode(isTargetVisualizationMode ? 'collaborative' : 'target')} 
       />
-      <FilledButton title='Avaliar desenho' onClick={() => console.log("oi")} />
+      <FilledButton title='Avaliar desenho' onClick={() => setShowEvaluation(true)} />
     </>
   );
 };
