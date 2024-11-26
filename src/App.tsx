@@ -4,7 +4,7 @@ import { DrawingProvider } from './context/DrawingContext';
 
 import HomePage from './pages/HomePage';
 import TargetDrawingPage from './pages/TargetDrawingPage';
-import CountdownPage from './pages/CutDownPage';
+import CountdownPage from './pages/CountDownPage';
 import CollaborativeDrawingPage from './pages/CollaborativeDrawingPage';
 import EvaluationPage from './pages/EvaluationPage';
 
