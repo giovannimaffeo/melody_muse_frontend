@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Timer from '../components/Timer';
@@ -13,7 +13,7 @@ const CollaborativeDrawingPage: React.FC = () => {
   const navigate = useNavigate();
   const { targetStrokes, collaborativeStrokes, setCollaborativeStrokes } = useDrawingContext();
   const [showTimeUp, setShowTimeUp] = useState(false);
-  const [finishDrawing, setFinishDrawing] = useState(false);
+  const [showFinishDrawing, setShowFinishDrawing] = useState(false);
   const { hours, minutes, seconds } = calculateTimeForCollaborative(targetStrokes);
 
   const addCompletedStrokes = (completedStrokes: Stroke[]) => {
@@ -27,6 +27,38 @@ const CollaborativeDrawingPage: React.FC = () => {
   const removeAllCompletedStrokes = () => {
     setCollaborativeStrokes([]);
   };
+
+  const playStrokeSound = (stroke: Stroke): Promise<void> => {
+    return new Promise((resolve) => {
+      const audio = stroke.color.sound;
+      if (audio) {
+        const volumeRate = 1 / 50;
+        audio.volume = stroke.width * volumeRate;
+        audio.currentTime = 0;
+        audio.play();
+
+        setTimeout(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          resolve();
+        }, 3000);
+      } else {
+        resolve(); 
+      };
+    });
+  };
+
+  const playTargetStrokes = async (stop: boolean) => {
+    while (!stop) {
+      for (const strokeToPlay of targetStrokes) {
+        await playStrokeSound(strokeToPlay); 
+      };
+    };
+  };
+
+  useEffect(() => {
+    playTargetStrokes(showFinishDrawing === true || showTimeUp === true);
+  }, []);
 
   return (
     <div className='overflow-hidden h-screen w-screen'>
@@ -42,7 +74,7 @@ const CollaborativeDrawingPage: React.FC = () => {
           onClose={() => navigate('/evaluation')} 
         />
       }
-      {finishDrawing && 
+      {showFinishDrawing && 
         <CollaborativePopup 
           title="Parabéns! Vocês conseguiram terminar o desenho antes do tempo finalizar 🎉"
           onClose={() => navigate('/evaluation')} 
@@ -54,7 +86,7 @@ const CollaborativeDrawingPage: React.FC = () => {
         removeCompletedStroke={removeCompletedStroke}
         removeAllCompletedStrokes={removeAllCompletedStrokes}
       />
-      <FilledButton title='Finalizar desenho' onClick={() => setFinishDrawing(true)} />
+      <FilledButton title='Finalizar desenho' onClick={() => setShowFinishDrawing(true)} />
     </div>
   );
 };

@@ -300,7 +300,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         audio.volume = stroke.width * volumeRate;
         audio.currentTime = 0;
         audio.play();
-      }
+      };
   
       const drawStep = () => {
         if (currentIndex >= stroke.points.length - 1) {
@@ -310,7 +310,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
             drawStroke(stroke);
           }
           return resolve();
-        }
+        };
   
         const p1 = stroke.points[currentIndex];
         const p2 = stroke.points[currentIndex + 1];

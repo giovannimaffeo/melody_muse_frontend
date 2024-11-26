@@ -27,7 +27,7 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
 					isFullSize={false}
-					readOnlyStrokes={readOnlyStrokes} 
+					readOnlyStrokes={readOnlyStrokes}
 				/>
 			</div>
 			<div className='border border-black'>
@@ -37,7 +37,7 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
 					isFullSize={false}
-					readOnlyStrokes={readOnlyStrokes} 
+					readOnlyStrokes={readOnlyStrokes}
 				/>
 			</div>
 			<div className='border border-black'>
@@ -47,7 +47,7 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
 					isFullSize={false}
-					readOnlyStrokes={readOnlyStrokes} 
+					readOnlyStrokes={readOnlyStrokes}
 				/>
 			</div>
 			<div className='border border-black'>
@@ -57,7 +57,7 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
 					isFullSize={false}
-					readOnlyStrokes={readOnlyStrokes} 
+					readOnlyStrokes={readOnlyStrokes}
 				/>
 			</div>
     </div>
