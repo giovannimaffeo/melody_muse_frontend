@@ -29,6 +29,7 @@ const TargetDrawingPage: React.FC = () => {
   return (
     <>
       <DrawingCanvas 
+        strokes={targetStrokes}
         addCompletedStrokes={addCompletedStrokes} 
         removeCompletedStroke={removeCompletedStroke} 
         removeAllCompletedStrokes={removeAllCompletedStrokes}

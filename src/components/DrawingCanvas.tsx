@@ -14,14 +14,16 @@ import { touchEventTypes } from '../constants/touchEventTypes';
 interface DrawingCanvasProps {
   isFullSize?: boolean; 
   isReadOnly?: boolean;
-  addCompletedStrokes?: (completedStrokes: Stroke[]) => void;
-  removeCompletedStroke?: (stroke: Stroke) => void; 
-  removeAllCompletedStrokes?: () => void;
+  strokes: Stroke[];
+  addCompletedStrokes: (completedStrokes: Stroke[]) => void;
+  removeCompletedStroke: (stroke: Stroke) => void; 
+  removeAllCompletedStrokes: () => void;
   readOnlyStrokes?: Stroke[];
 };
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ 
   isFullSize = true, 
+  strokes,
   addCompletedStrokes, 
   removeCompletedStroke,
   removeAllCompletedStrokes,
@@ -31,7 +33,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
   const [tool, setTool] = useState<'brush' | 'eraser' | 'click'>('brush');
-  const [strokes, setStrokes] = useState<Stroke[]>([]); 
   const [activeStrokes, setActiveStrokes] = useState<Stroke[]>([]);
   const [brushStyle, setBrushStyle] = useState<BrushStyle>({
     color: colors[0],
@@ -202,8 +203,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       });
     });
 
-    setStrokes([...strokes, ...completedStrokes]);
-    addCompletedStrokes && addCompletedStrokes(completedStrokes)
+    addCompletedStrokes(completedStrokes)
     const updateActiveStrokes = activeStrokes.filter((stroke) => !completedStrokeIds.includes(stroke.id));
     setActiveStrokes(updateActiveStrokes);
   };  
@@ -214,8 +214,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     if (canvas && context) {
       context.clearRect(0, 0, canvas.width, canvas.height);
       setActiveStrokes([]);
-      setStrokes([]);
-      removeAllCompletedStrokes && removeAllCompletedStrokes();
+      removeAllCompletedStrokes();
     };
   };
 
@@ -245,8 +244,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
       if (tool === 'eraser') {
         selectedStroke && eraseStroke(selectedStroke);
-        selectedStroke && setStrokes(() => strokes.filter((stroke) => stroke.id !== selectedStroke.id));
-        removeCompletedStroke && selectedStroke && removeCompletedStroke(selectedStroke)
+        selectedStroke && removeCompletedStroke(selectedStroke)
       } else {
         selectedStroke && animateStrokeWithSound(selectedStroke);     
       };

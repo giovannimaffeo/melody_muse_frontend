@@ -49,6 +49,7 @@ const CollaborativeDrawingPage: React.FC = () => {
         />
       }
       <CollaborativeDrawingCanvas
+        strokes={collaborativeStrokes}
         addCompletedStrokes={addCompletedStrokes}
         removeCompletedStroke={removeCompletedStroke}
         removeAllCompletedStrokes={removeAllCompletedStrokes}

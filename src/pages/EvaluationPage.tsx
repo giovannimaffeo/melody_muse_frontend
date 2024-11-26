@@ -32,6 +32,7 @@ const EvaluationPage: React.FC = () => {
     if (isTargetVisualizationMode) {
       return (
         <DrawingCanvas 
+          strokes={targetStrokes}
           addCompletedStrokes={addCompletedStrokes} 
           removeCompletedStroke={removeCompletedStroke} 
           removeAllCompletedStrokes={removeAllCompletedStrokes}
@@ -41,6 +42,7 @@ const EvaluationPage: React.FC = () => {
     } else {
       return (
         <CollaborativeDrawingCanvas
+          strokes={collaborativeStrokes}
           addCompletedStrokes={addCompletedStrokes} 
           removeCompletedStroke={removeCompletedStroke} 
           removeAllCompletedStrokes={removeAllCompletedStrokes}
