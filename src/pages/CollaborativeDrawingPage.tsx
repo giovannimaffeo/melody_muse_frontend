@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import DrawingCanvas from '../components/DrawingCanvas';
-import FinishDrawButton from '../components/FinishDrawButton';
 import Timer from '../components/Timer';
 import CollaborativePopup from '../components/CollaborativePopup';
 import { useDrawingContext } from '../context/DrawingContext';
 import { Stroke } from '../interfaces/stroke';
 import { calculateTimeForCollaborative } from '../constants/calculateTimeForCollaborative';
+import FilledButton from '../components/FilledButton';
+import CollaborativeDrawingCanvas from '../components/CollaborativeDrawingCanvas';
 
 const CollaborativeDrawingPage: React.FC = () => {
+  const navigate = useNavigate();
   const { targetStrokes, collaborativeStrokes, setCollaborativeStrokes } = useDrawingContext();
   const [showTimeUp, setShowTimeUp] = useState(false);
   const [finishDrawing, setFinishDrawing] = useState(false);
@@ -37,50 +39,21 @@ const CollaborativeDrawingPage: React.FC = () => {
       {showTimeUp && 
         <CollaborativePopup 
           title="Infelizmente, o tempo para reproduzir o desenho alvo terminou 😭"
-          onClose={() => console.log('Infelizmente, o tempo para reproduzir o desenho alvo terminou 😭')} 
+          onClose={() => navigate('/evaluation')} 
         />
       }
       {finishDrawing && 
         <CollaborativePopup 
           title="Parabéns! Vocês conseguiram terminar o desenho antes do tempo finalizar 🎉"
-          onClose={() => console.log('Parabéns! Vocês conseguiram terminar o desenho antes do tempo finalizar')} 
+          onClose={() => navigate('/evaluation')} 
         />
       }
-      <div className='grid grid-cols-2 grid-rows-2 h-full w-full'>
-        <div className='border border-black'>
-          <DrawingCanvas  
-            addCompletedStrokes={addCompletedStrokes}
-            removeCompletedStroke={removeCompletedStroke}
-            removeAllCompletedStrokes={removeAllCompletedStrokes}
-            isFullSize={false} 
-          />
-        </div>
-        <div className='border border-black'>
-          <DrawingCanvas  
-            addCompletedStrokes={addCompletedStrokes}
-            removeCompletedStroke={removeCompletedStroke}
-            removeAllCompletedStrokes={removeAllCompletedStrokes}
-            isFullSize={false} 
-          />
-        </div>
-        <div className='border border-black'>
-          <DrawingCanvas  
-            addCompletedStrokes={addCompletedStrokes}
-            removeCompletedStroke={removeCompletedStroke}
-            removeAllCompletedStrokes={removeAllCompletedStrokes}
-            isFullSize={false} 
-          />
-        </div>
-        <div className='border border-black'>
-          <DrawingCanvas  
-            addCompletedStrokes={addCompletedStrokes}
-            removeCompletedStroke={removeCompletedStroke}
-            removeAllCompletedStrokes={removeAllCompletedStrokes}
-            isFullSize={false} 
-          />
-        </div>
-      </div>
-      <FinishDrawButton onClick={() => setFinishDrawing(true)} />
+      <CollaborativeDrawingCanvas
+        addCompletedStrokes={addCompletedStrokes}
+        removeCompletedStroke={removeCompletedStroke}
+        removeAllCompletedStrokes={removeAllCompletedStrokes}
+      />
+      <FilledButton title='Finalizar desenho' onClick={() => setFinishDrawing(true)} />
     </div>
   );
 };

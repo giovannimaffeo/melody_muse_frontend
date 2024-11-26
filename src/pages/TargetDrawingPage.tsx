@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useDrawingContext } from '../context/DrawingContext';
 import DrawingCanvas from '../components/DrawingCanvas';
-import FinishDrawButton from '../components/FinishDrawButton';
+import FilledButton from '../components/FilledButton';
 import { Stroke } from '../interfaces/stroke';
 
 const TargetDrawingPage: React.FC = () => {
@@ -33,7 +33,7 @@ const TargetDrawingPage: React.FC = () => {
         removeCompletedStroke={removeCompletedStroke} 
         removeAllCompletedStrokes={removeAllCompletedStrokes}
       />
-      <FinishDrawButton onClick={onClick} />
+      <FilledButton title='Finalizar desenho' onClick={onClick} />
     </>
   );
 };

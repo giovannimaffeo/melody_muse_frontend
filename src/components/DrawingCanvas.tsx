@@ -17,14 +17,15 @@ interface DrawingCanvasProps {
   addCompletedStrokes?: (completedStrokes: Stroke[]) => void;
   removeCompletedStroke?: (stroke: Stroke) => void; 
   removeAllCompletedStrokes?: () => void;
+  readOnlyStrokes?: Stroke[];
 };
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ 
   isFullSize = true, 
-  isReadOnly = false, 
   addCompletedStrokes, 
   removeCompletedStroke,
-  removeAllCompletedStrokes
+  removeAllCompletedStrokes,
+  readOnlyStrokes
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -38,6 +39,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   });
   const [playingColors, setPlayingColors] = useState<Color[]>([]);
   const isToolBrush = tool === 'brush';
+  const isReadOnly = readOnlyStrokes !== undefined;
 
   const handleChangeTool = (tool: 'brush' | 'eraser') => {
     setTool(tool);
@@ -360,6 +362,10 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       context.strokeStyle = brushStyle.color.hex;
       contextRef.current = context;
     };
+
+    if (readOnlyStrokes) {
+      readOnlyStrokes.forEach((readOnlyStroke) => drawStroke(readOnlyStroke));
+    };
   }, []);
 
   return (
@@ -371,6 +377,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         handleChangeTool={handleChangeTool}
         setTool={setTool}
         clearCanvas={clearCanvas}
+        isReadOnly={isReadOnly}
       />
       <div
         onMouseDown={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} 

@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import TargetDrawingPage from './pages/TargetDrawingPage';
 import CountdownPage from './pages/CutDownPage';
 import CollaborativeDrawingPage from './pages/CollaborativeDrawingPage';
+import EvaluationPage from './pages/EvaluationPage';
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
           <Route path='/target-drawing' element={<TargetDrawingPage />} />
           <Route path='/cutdown' element={<CountdownPage />} />
           <Route path='/collaborative-drawing' element={<CollaborativeDrawingPage />} />
+          <Route path='/evaluation' element={<EvaluationPage />} />
         </Routes>
       </DrawingProvider>
     </Router>
