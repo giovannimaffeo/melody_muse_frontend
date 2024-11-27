@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { FaStar } from 'react-icons/fa';
 
-interface EvaluationPopupProps {
+interface DrawingEvaluationPopupProps {
   onRestart: () => void; 
 };
 
-const EvaluationPopup: React.FC<EvaluationPopupProps> = ({ onRestart }) => {
+const DrawingEvaluationPopup: React.FC<DrawingEvaluationPopupProps> = ({ onRestart }) => {
   const [selectedStars, setSelectedStars] = useState<number>(0);
 
   const getMessage = () => {
@@ -46,11 +46,11 @@ const EvaluationPopup: React.FC<EvaluationPopupProps> = ({ onRestart }) => {
           onClick={onRestart}
           className='bg-purple-700 text-white px-6 py-2 rounded-lg shadow-md hover:bg-purple-600 transition duration-300'
         >
-          Reiniciar Jogo
+          Avaliação do Som
         </button>
       </div>
     </div>
   );
 };
 
-export default EvaluationPopup;
+export default DrawingEvaluationPopup;
