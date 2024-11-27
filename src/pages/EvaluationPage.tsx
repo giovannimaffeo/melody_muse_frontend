@@ -6,14 +6,16 @@ import DrawingCanvas from '../components/DrawingCanvas';
 import { Stroke } from '../interfaces/stroke';
 import OutlineButton from '../components/OutlineButton';
 import FilledButton from '../components/FilledButton';
-import EvaluationPopup from '../components/EvaluationPopup';
+import DrawingEvaluationPopup from '../components/DrawingEvaluationPopup';
+import SoundEvaluationPopup from '../components/SoundEvaluationPopup';
 
 const EvaluationPage: React.FC = () => {
   const navigate = useNavigate();
   const { targetStrokes, setTargetStrokes, collaborativeStrokes, setCollaborativeStrokes } = useDrawingContext();
   const [visualizationMode, setVisualizationMode] = useState<'target' | 'collaborative'>('target');
   const isTargetVisualizationMode = visualizationMode === 'target';
-  const [showEvaluation, setShowEvaluation] = useState(false);
+  const [showDrawingEvaluation, setShowDrawingEvaluation] = useState(false);
+  const [showSoundEvaluation, setShowSoundEvaluation] = useState(false);
 
   const adjustStrokePoints = (strokes: Stroke[], screenWidth: number, screenHeight: number): Stroke[] => {
     const adjustedStrokes = strokes.map((stroke) => {
@@ -77,13 +79,14 @@ const EvaluationPage: React.FC = () => {
 
   return (
     <>
-      {showEvaluation && <EvaluationPopup onRestart={() => restart()} />}
+      {showDrawingEvaluation && <DrawingEvaluationPopup onRestart={() => setShowSoundEvaluation(true)} />}
+      {showSoundEvaluation && <SoundEvaluationPopup onRestart={() => restart()} />}
       {getCanvas()}
       <OutlineButton 
         title={isTargetVisualizationMode ? 'Desenho colaborativo' : 'Desenho alvo'}
         onClick={() => setVisualizationMode(isTargetVisualizationMode ? 'collaborative' : 'target')} 
       />
-      <FilledButton title='Avaliar desenho' onClick={() => setShowEvaluation(true)} />
+      <FilledButton title='Avaliar desenho' onClick={() => setShowDrawingEvaluation(true)} />
     </>
   );
 };
