@@ -27,7 +27,7 @@ const TargetSoundPage: React.FC = () => {
     for (const stroke of targetStrokesSound) {
       if (!isPlayingRef.current) break; 
       await playStrokeAudioByDuration(stroke);
-    }
+    };
 
     setIsPlaying(false);
     isPlayingRef.current = false; 
