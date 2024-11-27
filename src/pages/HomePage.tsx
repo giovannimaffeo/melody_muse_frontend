@@ -19,7 +19,7 @@ const Home = () => {
         onClick={goToDrawingPage}
         className='mt-[75vh] self-center bg-purple-900 text-white font-semibold py-2 px-6 rounded-lg shadow-lg hover:bg-purple-800 transition duration-200'
       >
-        Iniciar Desenho
+        Iniciar Jogo
       </button>
     </div>
   );

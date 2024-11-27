@@ -4,6 +4,7 @@ import { DrawingProvider } from './context/DrawingContext';
 
 import HomePage from './pages/HomePage';
 import TargetDrawingPage from './pages/TargetDrawingPage';
+import TargetSoundPage from './pages/TargetSoundPage';
 import CountdownPage from './pages/CountDownPage';
 import CollaborativeDrawingPage from './pages/CollaborativeDrawingPage';
 import EvaluationPage from './pages/EvaluationPage';
@@ -15,6 +16,7 @@ const App = () => {
         <Routes>
           <Route path='/' element={<HomePage />} />
           <Route path='/target-drawing' element={<TargetDrawingPage />} />
+          <Route path='/target-sound' element={<TargetSoundPage />} />
           <Route path='/countdown' element={<CountdownPage />} />
           <Route path='/collaborative-drawing' element={<CollaborativeDrawingPage />} />
           <Route path='/evaluation' element={<EvaluationPage />} />

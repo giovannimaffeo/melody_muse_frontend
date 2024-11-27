@@ -11,7 +11,7 @@ const TargetDrawingPage: React.FC = () => {
   const { targetStrokes, setTargetStrokes } = useDrawingContext();
 
   const onClick = () => {
-    navigate('/countdown');
+    navigate('/target-sound');
   };
 
   const addCompletedStrokes = (completedStrokes: Stroke[]) => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Timer from '../components/Timer';
@@ -27,36 +27,6 @@ const CollaborativeDrawingPage: React.FC = () => {
   const removeAllCompletedStrokes = () => {
     setCollaborativeStrokes([]);
   };
-
-  const playStrokeSound = (stroke: Stroke): Promise<void> => {
-    return new Promise((resolve) => {
-      const audio = stroke.color.sound;
-      if (audio) {
-        const volumeRate = 1 / 50;
-        audio.volume = stroke.width * volumeRate;
-        audio.currentTime = 0;
-        audio.play();
-
-        setTimeout(() => {
-          audio.pause();
-          audio.currentTime = 0;
-          resolve();
-        }, 3000);
-      } else {
-        resolve(); 
-      };
-    });
-  };
-
-  const playTargetStrokes = async () => {
-    for (const strokeToPlay of targetStrokes) {
-      await playStrokeSound(strokeToPlay); 
-    };
-  };
-
-  useEffect(() => {
-    playTargetStrokes();
-  }, []);
 
   return (
     <div className='overflow-hidden h-screen w-screen'>

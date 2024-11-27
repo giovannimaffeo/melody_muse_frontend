@@ -15,10 +15,11 @@ interface DrawingCanvasProps {
   screenIndex?: number;
   isFullSize?: boolean; 
   strokes: Stroke[];
-  addCompletedStrokes: (completedStrokes: Stroke[]) => void;
-  removeCompletedStroke: (stroke: Stroke) => void; 
-  removeAllCompletedStrokes: () => void;
-  isReadOnly?: boolean;
+  addCompletedStrokes?: (completedStrokes: Stroke[]) => void;
+  removeCompletedStroke?: (stroke: Stroke) => void; 
+  removeAllCompletedStrokes?: () => void;
+  mode?: 'draw' | 'sound' | 'readOnly';
+  addStrokeSound?: (stroke: Stroke) => void;
 };
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ 
@@ -28,12 +29,13 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   addCompletedStrokes, 
   removeCompletedStroke,
   removeAllCompletedStrokes,
-  isReadOnly = false
+  mode = 'draw',
+  addStrokeSound
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [openDrawingToolMenu, setOpenDrawingToolMenu] = useState<boolean>(false);
-  const [tool, setTool] = useState<'brush' | 'eraser' | 'click'>('brush');
+  const [tool, setTool] = useState<'brush' | 'eraser'>('brush');
   const [activeStrokes, setActiveStrokes] = useState<Stroke[]>([]);
   const [brushStyle, setBrushStyle] = useState<BrushStyle>({
     color: colors[0],
@@ -209,7 +211,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       });
     });
 
-    addCompletedStrokes(completedStrokes)
+    addCompletedStrokes && addCompletedStrokes(completedStrokes)
     const updateActiveStrokes = activeStrokes.filter((stroke) => !completedStrokeIds.includes(stroke.id));
     setActiveStrokes(updateActiveStrokes);
   };  
@@ -220,7 +222,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     if (canvas && context) {
       context.clearRect(0, 0, canvas.width, canvas.height);
       setActiveStrokes([]);
-      removeAllCompletedStrokes();
+      removeAllCompletedStrokes && removeAllCompletedStrokes();
     };
   };
 
@@ -248,11 +250,12 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         };
       };
 
-      if (tool === 'eraser') {
-        selectedStroke && eraseStroke(selectedStroke);
-        selectedStroke && removeCompletedStroke(selectedStroke)
+      if (mode === 'sound') {
+        selectedStroke && addStrokeSound && addStrokeSound(selectedStroke);
+        selectedStroke && animateStrokeWithSound(selectedStroke, false);     
       } else {
-        selectedStroke && animateStrokeWithSound(selectedStroke);     
+        selectedStroke && eraseStroke(selectedStroke);
+        selectedStroke && removeCompletedStroke && removeCompletedStroke(selectedStroke)
       };
     });
   };  
@@ -300,6 +303,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   
       const audio = stroke.color.sound;
       let currentIndex = 0;
+      const startTime = performance.now(); 
   
       if (audio) {
         const volumeRate = 1 / 50;
@@ -310,11 +314,15 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   
       const drawStep = () => {
         if (currentIndex >= stroke.points.length - 1) {
+          const endTime = performance.now();
+          const duration = (endTime - startTime) / 1000;
+          stroke.soundDuration = duration;
+
           if (audio) audio.pause();
           if (shouldErase) {
             eraseStroke(stroke);
             drawStroke(stroke);
-          }
+          };
           return resolve();
         };
   
@@ -348,11 +356,11 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   };
 
   const getHandleFn = (brushFn: any, noBrushFn: any) => {
-    if (isReadOnly) {
+    if (mode === 'readOnly') {
       return undefined;
-    } else if (isToolBrush) {
+    } else if (isToolBrush && mode === 'draw') {
       return brushFn;
-    } else noBrushFn;
+    } else return noBrushFn;
   };
 
   useEffect(() => {
@@ -375,9 +383,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       contextRef.current = context;
     };
 
-    if (isReadOnly) {
-      strokes.forEach((stroke) => drawStroke(stroke));
-    };
+    strokes.forEach((stroke) => drawStroke(stroke));
   }, []);
 
   return (
@@ -387,9 +393,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         brushStyle={brushStyle}
         colors={colors}
         handleChangeTool={handleChangeTool}
-        setTool={setTool}
         clearCanvas={clearCanvas}
-        isReadOnly={isReadOnly}
+        mode={mode}
       />
       <div
         onMouseDown={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} 

@@ -15,18 +15,6 @@ const EvaluationPage: React.FC = () => {
   const isTargetVisualizationMode = visualizationMode === 'target';
   const [showEvaluation, setShowEvaluation] = useState(false);
 
-  const addCompletedStrokes = (completedStrokes: Stroke[]) => {
-    setTargetStrokes([...targetStrokes, ...completedStrokes]);
-  };
-
-  const removeCompletedStroke = (stroke: Stroke) => {
-    setTargetStrokes(() => targetStrokes.filter((targetStroke) => targetStroke.id !== stroke.id));
-  };
-
-  const removeAllCompletedStrokes = () => {
-    setTargetStrokes([]);
-  };
-
   const adjustStrokePoints = (strokes: Stroke[], screenWidth: number, screenHeight: number): Stroke[] => {
     const adjustedStrokes = strokes.map((stroke) => {
       if (stroke.screenIndex === undefined) return stroke; 
@@ -65,10 +53,7 @@ const EvaluationPage: React.FC = () => {
           key='target'
           isFullSize={true}
           strokes={targetStrokes}
-          addCompletedStrokes={addCompletedStrokes} 
-          removeCompletedStroke={removeCompletedStroke} 
-          removeAllCompletedStrokes={removeAllCompletedStrokes}
-          isReadOnly={true}
+          mode='readOnly'
         />
       );
     } else {
@@ -77,10 +62,7 @@ const EvaluationPage: React.FC = () => {
           key='collaborative'
           isFullSize={true}
           strokes={adjustedCollaborativeStrokes}
-          addCompletedStrokes={addCompletedStrokes} 
-          removeCompletedStroke={removeCompletedStroke} 
-          removeAllCompletedStrokes={removeAllCompletedStrokes}
-          isReadOnly={true}
+          mode='readOnly'
         />
       );
     };

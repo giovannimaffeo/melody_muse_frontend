@@ -7,4 +7,5 @@ export interface Stroke {
 	points: { x: number; y: number }[]; 
 	length?: number;
 	screenIndex?: number;
+	soundDuration?: number;
 };

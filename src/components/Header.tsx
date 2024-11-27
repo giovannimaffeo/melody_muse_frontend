@@ -9,37 +9,43 @@ interface HeaderProps {
   tool: string;
   brushStyle: BrushStyle;
   colors: Color[];
-  handleChangeTool: (tool: "brush" | "eraser") => void;
-  setTool: React.Dispatch<React.SetStateAction<"brush" | "eraser" | "click">>;
+  handleChangeTool: (tool: 'brush' | 'eraser') => void;
   clearCanvas: () => void;
-	isReadOnly?: boolean
-}
+	mode: 'draw' | 'sound' | 'readOnly';
+};
 
 const Header: React.FC<HeaderProps> = ({
   tool,
   brushStyle,
   colors,
   handleChangeTool,
-  setTool,
-  clearCanvas,
-	isReadOnly=false
+	clearCanvas,
+	mode
 }) => {
-	if (isReadOnly) {
+	if (mode === 'readOnly') {
 		return <div className='flex bg-purple-700 h-[5vh] w-full pl-[1.5%] items-center justify-center' />;
+	} else if (mode === 'sound') {
+		return (
+			<div className='flex bg-purple-700 h-[5vh] w-full pl-[1.5%] items-center justify-center'>
+				<div className='bg-[#F8FAFC] p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.5%]'>
+					<GiClick className='size-[75%] fill-purple-500' />
+				</div>
+			</div>
+		)
 	} else {
 		return (
-			<div className="flex bg-purple-700 h-[5vh] w-full pl-[1.5%] items-center justify-center">
+			<div className='flex bg-purple-700 h-[5vh] w-full pl-[1.5%] items-center justify-center'>
 				<button
 					onMouseDown={() => handleChangeTool('brush')}
 					onTouchStart={() => handleChangeTool('brush')}
 					style={{
 						backgroundColor: tool === 'brush' ? '#F8FAFC' : 'transparent',
 					}}
-					className="p-0 h-7 w-7 flex justify-center items-center rounded-full"
+					className='p-0 h-7 w-7 flex justify-center items-center rounded-full'
 				>
 					<FaPaintBrush
 					style={{ fill: tool === 'brush' ? brushStyle.color.hex : 'white' }}
-					className="size-[60%]"
+					className='size-[60%]'
 					/>
 				</button>
 				<button
@@ -48,36 +54,21 @@ const Header: React.FC<HeaderProps> = ({
 					style={{
 						backgroundColor: tool === 'eraser' ? '#F8FAFC' : 'transparent',
 					}}
-					className="p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.3%]"
+					className='p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.3%]'
 				>
 					<FaEraser
 					style={{
 						fill: tool === 'eraser' ? colors.find(option => option.name === 'purple')?.hex : 'white',
 					}}
-					className="size-[75%]"
-					/>
-				</button>
-				<button
-					onMouseDown={() => setTool('click')}
-					onTouchStart={() => setTool('click')}
-					style={{
-						backgroundColor: tool === 'click' ? '#F8FAFC' : 'transparent',
-					}}
-					className="p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.5%]"
-				>
-					<GiClick
-					style={{
-						fill: tool === 'click' ? colors.find(option => option.name === 'purple')?.hex : 'white',
-					}}
-					className="size-[75%]"
+					className='size-[75%]'
 					/>
 				</button>
 				<button
 					onMouseDown={clearCanvas}
 					onTouchStart={clearCanvas}
-					className="p-0 flex justify-center items-center bg-transparent ml-[0.3%] h-full"
+					className='p-0 flex justify-center items-center bg-transparent ml-[0.3%] h-full'
 				>
-					<VscDebugRestart className="fill-white size-[78%]" />
+					<VscDebugRestart className='fill-white size-[78%]' />
 				</button>
 			</div>
 		);
