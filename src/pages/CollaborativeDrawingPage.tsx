@@ -48,16 +48,14 @@ const CollaborativeDrawingPage: React.FC = () => {
     });
   };
 
-  const playTargetStrokes = async (stop: boolean) => {
-    while (!stop) {
-      for (const strokeToPlay of targetStrokes) {
-        await playStrokeSound(strokeToPlay); 
-      };
+  const playTargetStrokes = async () => {
+    for (const strokeToPlay of targetStrokes) {
+      await playStrokeSound(strokeToPlay); 
     };
   };
 
   useEffect(() => {
-    playTargetStrokes(showFinishDrawing === true || showTimeUp === true);
+    playTargetStrokes();
   }, []);
 
   return (

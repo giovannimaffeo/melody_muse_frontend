@@ -6,7 +6,6 @@ import DrawingCanvas from '../components/DrawingCanvas';
 import { Stroke } from '../interfaces/stroke';
 import OutlineButton from '../components/OutlineButton';
 import FilledButton from '../components/FilledButton';
-import CollaborativeDrawingCanvas from '../components/CollaborativeDrawingCanvas';
 import EvaluationPopup from '../components/EvaluationPopup';
 
 const EvaluationPage: React.FC = () => {
@@ -28,25 +27,60 @@ const EvaluationPage: React.FC = () => {
     setTargetStrokes([]);
   };
 
+  const adjustStrokePoints = (strokes: Stroke[], screenWidth: number, screenHeight: number): Stroke[] => {
+    const adjustedStrokes = strokes.map((stroke) => {
+      if (stroke.screenIndex === undefined) return stroke; 
+
+      const quadrantOffsets = [
+        { x: 0, y: 0 }, 
+        { x: screenWidth / 2, y: 0 }, 
+        { x: 0, y: screenHeight / 2 }, 
+        { x: screenWidth / 2, y: screenHeight / 2 }
+      ];
+
+      const offset = quadrantOffsets[stroke.screenIndex];
+
+      const adjustedPoints = stroke.points.map((point) => ({
+          x: point.x + offset.x,
+          y: point.y + offset.y,
+      }));
+
+      return {
+          ...stroke,
+          points: adjustedPoints, 
+      };
+    });
+    
+    return adjustedStrokes;
+  };
+
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+  const adjustedCollaborativeStrokes = adjustStrokePoints(collaborativeStrokes, screenWidth, screenHeight - screenHeight * 0.085);
+
   const getCanvas = () => {
-    if (isTargetVisualizationMode) {
+    if (visualizationMode === 'target') {
       return (
         <DrawingCanvas 
+          key='target'
+          isFullSize={true}
           strokes={targetStrokes}
           addCompletedStrokes={addCompletedStrokes} 
           removeCompletedStroke={removeCompletedStroke} 
           removeAllCompletedStrokes={removeAllCompletedStrokes}
-          readOnlyStrokes={targetStrokes}
+          isReadOnly={true}
         />
       );
     } else {
       return (
-        <CollaborativeDrawingCanvas
-          strokes={collaborativeStrokes}
+        <DrawingCanvas
+          key='collaborative'
+          isFullSize={true}
+          strokes={adjustedCollaborativeStrokes}
           addCompletedStrokes={addCompletedStrokes} 
           removeCompletedStroke={removeCompletedStroke} 
           removeAllCompletedStrokes={removeAllCompletedStrokes}
-          readOnlyStrokes={collaborativeStrokes}
+          isReadOnly={true}
         />
       );
     };
@@ -57,6 +91,7 @@ const EvaluationPage: React.FC = () => {
     setCollaborativeStrokes([]);
     navigate('/');
   };
+
 
   return (
     <>

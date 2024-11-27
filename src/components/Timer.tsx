@@ -34,7 +34,7 @@ const Timer: React.FC<TimerProps> = ({ hours, minutes, seconds, onComplete }) =>
   };
 
   return (
-    <div className='flex justify-center items-center font-bold bg-purple-700 text-white'>
+    <div className='flex justify-center items-center font-bold bg-purple-700 text-white h-[3vh]'>
       <span
         className='text-[5vw] sm:text-[1.2rem]' 
       >

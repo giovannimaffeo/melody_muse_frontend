@@ -12,22 +12,23 @@ import { InteractionInput } from '../interfaces/interactionInput';
 import { touchEventTypes } from '../constants/touchEventTypes';
 
 interface DrawingCanvasProps {
+  screenIndex?: number;
   isFullSize?: boolean; 
-  isReadOnly?: boolean;
   strokes: Stroke[];
   addCompletedStrokes: (completedStrokes: Stroke[]) => void;
   removeCompletedStroke: (stroke: Stroke) => void; 
   removeAllCompletedStrokes: () => void;
-  readOnlyStrokes?: Stroke[];
+  isReadOnly?: boolean;
 };
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ 
+  screenIndex = 0,
   isFullSize = true, 
   strokes,
   addCompletedStrokes, 
   removeCompletedStroke,
   removeAllCompletedStrokes,
-  readOnlyStrokes
+  isReadOnly = false
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -40,7 +41,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   });
   const [playingColors, setPlayingColors] = useState<Color[]>([]);
   const isToolBrush = tool === 'brush';
-  const isReadOnly = readOnlyStrokes !== undefined;
 
   const handleChangeTool = (tool: 'brush' | 'eraser') => {
     setTool(tool);
@@ -70,29 +70,32 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   };
 
-  const formatInteractionInputs = (event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent> | React.TouchEvent<HTMLCanvasElement>) => {    
+  const formatInteractionInputs = (
+    event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
     if (touchEventTypes.includes(event.type)) {
       const touchEvent = event as React.TouchEvent;
-      let touchList;
-      if (touchEvent.type === touchEventTypes[2]) {
-        touchList = touchEvent.changedTouches;
-      } else {
-        touchList = touchEvent.touches;
-      };
+      const touchList =
+        touchEvent.type === touchEventTypes[2] ? touchEvent.changedTouches : touchEvent.touches;
   
       return Array.from(touchList).map((touch) => ({
         id: touch.identifier.toString(),
         clientX: touch.clientX,
         clientY: touch.clientY,
+        screenIndex
       }));
     } else {
-      return [{
-        id: 'mouse',
-        clientX: (event as MouseEvent).clientX,
-        clientY: (event as MouseEvent).clientY
-      }];
-    };
-  };
+      const mouseEvent = event as MouseEvent;
+      return [
+        {
+          id: 'mouse',
+          clientX: mouseEvent.clientX,
+          clientY: mouseEvent.clientY,
+          screenIndex
+        },
+      ];
+    }
+  };  
 
   const startDrawing: React.MouseEventHandler<HTMLCanvasElement> & React.TouchEventHandler<HTMLCanvasElement> = (event) => {
     event.preventDefault();
@@ -107,7 +110,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         id: input.id,
         color: brushStyle.color,
         width: brushStyle.size,
-        points: [{ x: offsetX, y: offsetY }]
+        points: [{ x: offsetX, y: offsetY }],
+        screenIndex: input.screenIndex
       };
     });
     
@@ -188,16 +192,18 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
   const finishDrawing: React.MouseEventHandler<HTMLCanvasElement> & React.TouchEventHandler<HTMLCanvasElement> = (event) => {
     event.preventDefault();
-    const inputs = formatInteractionInputs(event); 
-    
+    const inputs = formatInteractionInputs(event);
+        
     let completedStrokes: Stroke[] = [];
     let completedStrokeIds: string[] = [];
     inputs.forEach((input: InteractionInput) => {
       activeStrokes.forEach((activeStroke) => {
         if (input.id === activeStroke.id) {
           const length = calculateStrokeLengthInPixels(activeStroke.points);  
-
-          completedStrokes = [...completedStrokes, {...activeStroke, id: crypto.randomUUID(), length}];
+          
+          if (length !== 0) {
+            completedStrokes = [...completedStrokes, {...activeStroke, id: crypto.randomUUID(), length}];
+          };
           completedStrokeIds = [...completedStrokeIds, activeStroke.id];
         };
       });
@@ -341,6 +347,14 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     }; 
   };
 
+  const getHandleFn = (brushFn: any, noBrushFn: any) => {
+    if (isReadOnly) {
+      return undefined;
+    } else if (isToolBrush) {
+      return brushFn;
+    } else noBrushFn;
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -361,13 +375,13 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       contextRef.current = context;
     };
 
-    if (readOnlyStrokes) {
-      readOnlyStrokes.forEach((readOnlyStroke) => drawStroke(readOnlyStroke));
+    if (isReadOnly) {
+      strokes.forEach((stroke) => drawStroke(stroke));
     };
   }, []);
 
   return (
-    <div className='flex flex-col bg-white'>  
+    <div className='flex flex-col bg-white'> 
       <Header
         tool={tool}
         brushStyle={brushStyle}
@@ -392,13 +406,13 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         }
         <canvas
           ref={canvasRef}
-          onTouchStart={!isToolBrush ? handleCanvasClick : startDrawing}
-          onTouchMove={!isToolBrush ? undefined : draw}
-          onTouchEnd={!isToolBrush ? undefined : finishDrawing}
-          onMouseDown={!isToolBrush ? handleCanvasClick : startDrawing}
-          onMouseMove={!isToolBrush ? undefined : draw}
-          onMouseUp={!isToolBrush ? undefined : finishDrawing}
-          onMouseLeave={!isToolBrush ? undefined : finishDrawing}
+          onTouchStart={getHandleFn(startDrawing, handleCanvasClick)}
+          onTouchMove={getHandleFn(draw, undefined)}
+          onTouchEnd={getHandleFn(finishDrawing, undefined)}
+          onMouseDown={getHandleFn(startDrawing, handleCanvasClick)}
+          onMouseMove={getHandleFn(draw, undefined)}
+          onMouseUp={getHandleFn(finishDrawing, undefined)}
+          onMouseLeave={getHandleFn(finishDrawing, undefined)}
           style={{ touchAction: 'none' }}
         />
       </div>

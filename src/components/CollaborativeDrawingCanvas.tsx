@@ -15,49 +15,48 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 	strokes,
 	addCompletedStrokes,
 	removeCompletedStroke,
-	removeAllCompletedStrokes,
-	readOnlyStrokes
+	removeAllCompletedStrokes
 }) => {
   return (
     <div className='grid grid-cols-2 grid-rows-2 h-full w-full'>
 			<div className='border border-black'>
-				<DrawingCanvas  
+				<DrawingCanvas 
+					screenIndex={0} // Superior esquerdo
 					strokes={strokes}
 					addCompletedStrokes={addCompletedStrokes}
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
 					isFullSize={false}
-					readOnlyStrokes={readOnlyStrokes}
 				/>
 			</div>
 			<div className='border border-black'>
 				<DrawingCanvas  
+					screenIndex={1} // Superior direito
 					strokes={strokes}
 					addCompletedStrokes={addCompletedStrokes}
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
 					isFullSize={false}
-					readOnlyStrokes={readOnlyStrokes}
 				/>
 			</div>
 			<div className='border border-black'>
 				<DrawingCanvas  
+					screenIndex={2} // Inferior esquerdo
 					strokes={strokes}
 					addCompletedStrokes={addCompletedStrokes}
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
 					isFullSize={false}
-					readOnlyStrokes={readOnlyStrokes}
 				/>
 			</div>
 			<div className='border border-black'>
-				<DrawingCanvas  
+				<DrawingCanvas 
+					screenIndex={3} // Inferior direito
 					strokes={strokes}
 					addCompletedStrokes={addCompletedStrokes}
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
 					isFullSize={false}
-					readOnlyStrokes={readOnlyStrokes}
 				/>
 			</div>
     </div>

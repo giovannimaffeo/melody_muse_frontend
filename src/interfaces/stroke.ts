@@ -6,4 +6,5 @@ export interface Stroke {
 	width: number; 
 	points: { x: number; y: number }[]; 
 	length?: number;
+	screenIndex?: number;
 };
