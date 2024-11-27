@@ -12,6 +12,7 @@ interface HeaderProps {
   handleChangeTool: (tool: 'brush' | 'eraser') => void;
   clearCanvas: () => void;
 	mode: 'draw' | 'sound' | 'readOnly';
+	setOpenDrawingToolMenu: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const Header: React.FC<HeaderProps> = ({
@@ -20,16 +21,21 @@ const Header: React.FC<HeaderProps> = ({
   colors,
   handleChangeTool,
 	clearCanvas,
-	mode
+	mode,
+	setOpenDrawingToolMenu
 }) => {
 	if (mode === 'readOnly') {
 		return <div className='flex bg-purple-700 h-[5vh] w-full pl-[1.5%] items-center justify-center' />;
 	} else if (mode === 'sound') {
 		return (
 			<div className='flex bg-purple-700 h-[5vh] w-full pl-[1.5%] items-center justify-center'>
-				<div className='bg-[#F8FAFC] p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.5%]'>
+				<button 
+					onMouseDown={() => setOpenDrawingToolMenu(true)}
+					onTouchStart={() => setOpenDrawingToolMenu(true)}					
+					className='bg-[#F8FAFC] p-0 h-7 w-7 flex justify-center items-center rounded-full ml-[0.5%]'
+				>
 					<GiClick className='size-[75%] fill-purple-500' />
-				</div>
+				</button>
 			</div>
 		)
 	} else {

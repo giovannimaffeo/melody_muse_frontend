@@ -13,7 +13,7 @@ const CollaborativePopup: React.FC<CollaborativePopupProps> = ({ title, onClose 
           {title}
         </h2>
         <p className='text-black text-sm mb-6'>
-          Pressione <strong>Continuar</strong> para navegar para a tela de comparação onde o desenhista inicial irá avaliá-los
+          Pressione <strong>Continuar</strong> para navegar para a tela onde tentarão reproduzir o mesmo som
         </p>
         <button
           onClick={onClose}

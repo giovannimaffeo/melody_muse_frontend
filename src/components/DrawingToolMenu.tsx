@@ -7,7 +7,6 @@ import { AiOutlineSound  } from "react-icons/ai";
 import { FaRegCircleStop } from "react-icons/fa6";
 
 interface DrawingToolMenuProps {
-  brushStyle: BrushStyle;
   handleChangeBrushStyle: <K extends keyof BrushStyle>(key: K, value: BrushStyle[K]) => void;
   playingColors: Color[];
   setPlayingColors: React.Dispatch<React.SetStateAction<Color[]>>;
@@ -15,7 +14,6 @@ interface DrawingToolMenuProps {
 };
 
 const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({ 
-  brushStyle, 
   handleChangeBrushStyle,
   playingColors,
   setPlayingColors,
@@ -45,7 +43,7 @@ const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({
 
   return (
     <div style={{ position: 'absolute', top: position.top, left: position.left }} className='bg-gray-700 text-white px-4 pt-4 pb-2 rounded-lg shadow-lg flex flex-col gap-2'>
-      <div className='flex items-center'>
+      {/*<div className='flex items-center'>
         <input
           type='range'
           min='1'
@@ -54,7 +52,7 @@ const DrawingToolMenu: React.FC<DrawingToolMenuProps> = ({
           onChange={(e) => handleChangeBrushStyle('size', Number(e.target.value))}
           className='w-full'
         />
-      </div>
+      </div>*/}
       <div className='flex items-center gap-1'>
         {colors.map((colorOption) => (
           <div className='flex flex-col' key={colorOption.hex}>

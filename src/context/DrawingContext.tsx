@@ -9,6 +9,8 @@ interface DrawingContextProps {
   setCollaborativeStrokes: React.Dispatch<React.SetStateAction<Stroke[]>>;
   targetStrokesSound: Stroke[];
   setTargetStrokesSound: React.Dispatch<React.SetStateAction<Stroke[]>>;
+  collaborativeStrokesSound: Stroke[];
+  setCollaborativeStrokesSound: React.Dispatch<React.SetStateAction<Stroke[]>>;
 };
 
 const DrawingContext = createContext<DrawingContextProps | undefined>(undefined);
@@ -17,6 +19,7 @@ export const DrawingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [targetStrokes, setTargetStrokes] = useState<Stroke[]>([]);
   const [collaborativeStrokes, setCollaborativeStrokes] = useState<Stroke[]>([]);
   const [targetStrokesSound, setTargetStrokesSound] = useState<Stroke[]>([]);
+  const [collaborativeStrokesSound, setCollaborativeStrokesSound] = useState<Stroke[]>([]);
 
   return (
     <DrawingContext.Provider
@@ -26,7 +29,9 @@ export const DrawingProvider: React.FC<{ children: ReactNode }> = ({ children })
         collaborativeStrokes, 
         setCollaborativeStrokes,
         targetStrokesSound,
-        setTargetStrokesSound 
+        setTargetStrokesSound ,
+        collaborativeStrokesSound,
+        setCollaborativeStrokesSound
       }}
     >
       {children}

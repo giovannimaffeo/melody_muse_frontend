@@ -7,6 +7,7 @@ import TargetDrawingPage from './pages/TargetDrawingPage';
 import TargetSoundPage from './pages/TargetSoundPage';
 import CountdownPage from './pages/CountDownPage';
 import CollaborativeDrawingPage from './pages/CollaborativeDrawingPage';
+import CollaborativeSoundPage from './pages/CollaborativeSoundPage';
 import EvaluationPage from './pages/EvaluationPage';
 
 const App = () => {
@@ -19,6 +20,7 @@ const App = () => {
           <Route path='/target-sound' element={<TargetSoundPage />} />
           <Route path='/countdown' element={<CountdownPage />} />
           <Route path='/collaborative-drawing' element={<CollaborativeDrawingPage />} />
+          <Route path='/collaborative-sound' element={<CollaborativeSoundPage />} />
           <Route path='/evaluation' element={<EvaluationPage />} />
         </Routes>
       </DrawingProvider>

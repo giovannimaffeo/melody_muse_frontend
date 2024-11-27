@@ -39,13 +39,13 @@ const CollaborativeDrawingPage: React.FC = () => {
       {showTimeUp && 
         <CollaborativePopup 
           title="Infelizmente, o tempo para reproduzir o desenho alvo terminou 😭"
-          onClose={() => navigate('/evaluation')} 
+          onClose={() => navigate('/collaborative-sound')} 
         />
       }
       {showFinishDrawing && 
         <CollaborativePopup 
           title="Parabéns! Vocês conseguiram terminar o desenho antes do tempo finalizar 🎉"
-          onClose={() => navigate('/evaluation')} 
+          onClose={() => navigate('/collaborative-sound')} 
         />
       }
       <CollaborativeDrawingCanvas

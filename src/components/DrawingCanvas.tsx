@@ -384,6 +384,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
 
     strokes.forEach((stroke) => drawStroke(stroke));
+    mode === 'sound' && setOpenDrawingToolMenu(true);
   }, []);
 
   return (
@@ -395,6 +396,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         handleChangeTool={handleChangeTool}
         clearCanvas={clearCanvas}
         mode={mode}
+        setOpenDrawingToolMenu={setOpenDrawingToolMenu}
       />
       <div
         onMouseDown={() => openDrawingToolMenu && setOpenDrawingToolMenu(false)} 
@@ -402,7 +404,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       >
         {openDrawingToolMenu &&
           <DrawingToolMenu
-            brushStyle={brushStyle}
             handleChangeBrushStyle={handleChangeBrushStyle}
             playingColors={playingColors}
             setPlayingColors={setPlayingColors}
