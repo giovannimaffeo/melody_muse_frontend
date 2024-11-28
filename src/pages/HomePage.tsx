@@ -5,7 +5,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   const goToDrawingPage = () => {
-    navigate('/target-drawing'); 
+    navigate('/rules'); 
   };
 
   return (

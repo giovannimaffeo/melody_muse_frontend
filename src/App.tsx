@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DrawingProvider } from './context/DrawingContext';
 
 import HomePage from './pages/HomePage';
+import RulesPage from './pages/RulesPage';
 import TargetDrawingPage from './pages/TargetDrawingPage';
 import TargetSoundPage from './pages/TargetSoundPage';
 import CountdownPage from './pages/CountDownPage';
@@ -16,6 +17,7 @@ const App = () => {
       <DrawingProvider>
         <Routes>
           <Route path='/' element={<HomePage />} />
+          <Route path='/rules' element={<RulesPage />} />
           <Route path='/target-drawing' element={<TargetDrawingPage />} />
           <Route path='/target-sound' element={<TargetSoundPage />} />
           <Route path='/countdown' element={<CountdownPage />} />
