@@ -5,7 +5,6 @@ import { useDrawingContext } from '../context/DrawingContext';
 import DrawingCanvas from '../components/DrawingCanvas';
 import FilledButton from '../components/FilledButton';
 import { Stroke } from '../interfaces/stroke';
-import OutlineButton from '../components/OutlineButton';
 import { playStrokeAudioByDuration } from '../constants/playStrokeAudioByDuration';
 
 const TargetSoundPage: React.FC = () => {
@@ -29,8 +28,7 @@ const TargetSoundPage: React.FC = () => {
     isPlayingRef.current = true; 
 
     for (const stroke of targetStrokesSound) {
-      if (!isPlayingRef.current) break; 
-      await playStrokeAudioByDuration(stroke);
+      await playStrokeAudioByDuration(stroke, isPlayingRef);
     };
 
     setIsPlaying(false);

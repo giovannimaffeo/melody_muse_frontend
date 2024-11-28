@@ -68,8 +68,7 @@ const SoundEvaluationPopup: React.FC<SoundEvaluationPopupProps> = ({
     ref.current = true;
 
     for (const stroke of strokes) {
-      if (!ref.current) break; 
-      await playStrokeAudioByDuration(stroke);
+      await playStrokeAudioByDuration(stroke, ref);
     };
 
     setIsPlaying(false);
