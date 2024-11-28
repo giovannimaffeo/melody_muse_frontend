@@ -17,7 +17,11 @@ const TargetSoundPage: React.FC = () => {
   const isPlayingRef = useRef(false); 
 
   const addStrokeSound = (stroke: Stroke) => {
-    setTargetStrokesSound([...targetStrokesSound, stroke]);
+    const isStrokeAlreadyAdded = targetStrokesSound.some(existingStroke => existingStroke.id === stroke.id);
+
+    if (!isStrokeAlreadyAdded) {
+      setTargetStrokesSound([...targetStrokesSound, stroke]);
+    };
   };
 
   const handlePlaySound = async () => {
@@ -53,7 +57,8 @@ const TargetSoundPage: React.FC = () => {
       />
       {isTargetStrokesSoundComplete && (
         <>
-          <OutlineButton 
+          <FilledButton
+            classname='!right-[220px]' 
             title={isPlaying ? 'Parar som' : 'Reproduzir som'} 
             onClick={isPlaying ? handleStopSound : handlePlaySound} 
           />

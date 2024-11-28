@@ -12,8 +12,12 @@ const CollaborativeSoundPage: React.FC = () => {
   const isTargetStrokesSoundComplete = targetStrokes.length === collaborativeStrokesSound.length;
 
   const addStrokeSound = (stroke: Stroke) => {
-    setCollaborativeStrokesSound([...collaborativeStrokesSound, stroke]);
-  };
+    const isStrokeAlreadyAdded = collaborativeStrokesSound.some(existingStroke => existingStroke.id === stroke.id);
+  
+    if (!isStrokeAlreadyAdded) {
+      setCollaborativeStrokesSound([...collaborativeStrokesSound, stroke]);
+    };
+  };  
 
   const handleFinishSound = () => {
     navigate('/evaluation');

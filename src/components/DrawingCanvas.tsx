@@ -10,6 +10,7 @@ import { Stroke } from '../interfaces/stroke';
 import { Color } from '../interfaces/color';
 import { InteractionInput } from '../interfaces/interactionInput';
 import { touchEventTypes } from '../constants/touchEventTypes';
+import { calculateStrokeLengthInPixels } from '../constants/calculateStrokeLengthInPixels';
 
 interface DrawingCanvasProps {
   screenIndex?: number;
@@ -172,25 +173,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     });
     setActiveStrokes(updatedStrokes);
   };  
-
-  const calculateStrokeLengthInPixels = (points: { x: number; y: number }[]) => {
-    if (points.length < 2) return 0; 
-  
-    let length = 0;
-  
-    for (let i = 1; i < points.length; i++) {
-      const p1 = points[i - 1];
-      const p2 = points[i];
-  
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-  
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      length += distance;
-    };
-  
-    return Math.round(length); 
-  };
 
   const finishDrawing: React.MouseEventHandler<HTMLCanvasElement> & React.TouchEventHandler<HTMLCanvasElement> = (event) => {
     event.preventDefault();
@@ -385,7 +367,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
     strokes.forEach((stroke) => drawStroke(stroke));
     mode === 'sound' && setOpenDrawingToolMenu(true);
-  }, []);
+  }, [strokes]);
 
   return (
     <div className='flex flex-col bg-white'> 

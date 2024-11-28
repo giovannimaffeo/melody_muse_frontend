@@ -22,7 +22,7 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 			<div className='border border-black'>
 				<DrawingCanvas 
 					screenIndex={0} // Superior esquerdo
-					strokes={strokes}
+					strokes={strokes.filter((stroke) => stroke.screenIndex === 0)}
 					addCompletedStrokes={addCompletedStrokes}
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
@@ -32,7 +32,7 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 			<div className='border border-black'>
 				<DrawingCanvas  
 					screenIndex={1} // Superior direito
-					strokes={strokes}
+					strokes={strokes.filter((stroke) => stroke.screenIndex === 1)}
 					addCompletedStrokes={addCompletedStrokes}
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
@@ -42,7 +42,7 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 			<div className='border border-black'>
 				<DrawingCanvas  
 					screenIndex={2} // Inferior esquerdo
-					strokes={strokes}
+					strokes={strokes.filter((stroke) => stroke.screenIndex === 2)}
 					addCompletedStrokes={addCompletedStrokes}
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
@@ -52,7 +52,7 @@ const CollaborativeDrawingCanvas: React.FC<CollaborativeDrawingCanvasProps> = ({
 			<div className='border border-black'>
 				<DrawingCanvas 
 					screenIndex={3} // Inferior direito
-					strokes={strokes}
+					strokes={strokes.filter((stroke) => stroke.screenIndex === 3)}
 					addCompletedStrokes={addCompletedStrokes}
 					removeCompletedStroke={removeCompletedStroke}
 					removeAllCompletedStrokes={removeAllCompletedStrokes}
