@@ -14,9 +14,7 @@ const SoundEvaluationPopup: React.FC<SoundEvaluationPopupProps> = ({
   const { targetStrokesSound, collaborativeStrokesSound } = useDrawingContext();
   const [isPlayingTarget, setIsPlayingTarget] = useState(false);
   const [isPlayingCollaborative, setIsPlayingCollaborative] = useState(false);
-
-  const isPlayingTargetRef = useRef(false);
-  const isPlayingCollaborativeRef = useRef(false);
+  const isPlayingRef = useRef(false);
 
   const calculateAccuracy = (): number => {
     let matchingStrokes = 0;
@@ -55,32 +53,21 @@ const SoundEvaluationPopup: React.FC<SoundEvaluationPopupProps> = ({
   };
 
   const handlePlaySound = async (strokes: Stroke[], isTarget: boolean) => {
-    if (isTarget && isPlayingCollaborativeRef.current) {
-      handleStopSound(false); 
-    } else if (!isTarget && isPlayingTargetRef.current) {
-      handleStopSound(true); 
-    };
-
-    const ref = isTarget ? isPlayingTargetRef : isPlayingCollaborativeRef;
-    const setIsPlaying = isTarget ? setIsPlayingTarget : setIsPlayingCollaborative;
-
-    setIsPlaying(true);
-    ref.current = true;
+    isTarget ? setIsPlayingTarget(true) : setIsPlayingCollaborative(true);
+    isPlayingRef.current = true;
 
     for (const stroke of strokes) {
-      await playStrokeAudioByDuration(stroke, ref);
+      await playStrokeAudioByDuration(stroke, isPlayingRef);
+      if (!isPlayingRef.current) break;
     };
 
-    setIsPlaying(false);
-    ref.current = false;
+    isTarget ? setIsPlayingTarget(false) : setIsPlayingCollaborative(false);
+    isPlayingRef.current = false;
   };
 
   const handleStopSound = (isTarget: boolean) => {
-    const ref = isTarget ? isPlayingTargetRef : isPlayingCollaborativeRef;
-    const setIsPlaying = isTarget ? setIsPlayingTarget : setIsPlayingCollaborative;
-
-    ref.current = false;
-    setIsPlaying(false);
+    isTarget ? setIsPlayingTarget(false) : setIsPlayingCollaborative(false);
+    isPlayingRef.current = false;
   };
 
   return (

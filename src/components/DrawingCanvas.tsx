@@ -21,6 +21,7 @@ interface DrawingCanvasProps {
   removeAllCompletedStrokes?: () => void;
   mode?: 'draw' | 'sound' | 'readOnly';
   addStrokeSound?: (stroke: Stroke) => void;
+  refreshOnChangeStrokes?: boolean;
 };
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ 
@@ -31,7 +32,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   removeCompletedStroke,
   removeAllCompletedStrokes,
   mode = 'draw',
-  addStrokeSound
+  addStrokeSound,
+  refreshOnChangeStrokes = false
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -214,7 +216,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     inputs.forEach((input) => {
       const { offsetX, offsetY } = getOffset(input);
 
-      const tolerance = 5; 
+      const tolerance = screen.width * 0.01; 
       let selectedStroke;
       for (let i = 0; i < strokes.length; i++) {
         const stroke = strokes[i];
@@ -367,7 +369,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
     strokes.forEach((stroke) => drawStroke(stroke));
     mode === 'sound' && setOpenDrawingToolMenu(true);
-  }, [strokes]);
+  }, refreshOnChangeStrokes ? [strokes] : []);
 
   return (
     <div className='flex flex-col bg-white'> 

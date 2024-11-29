@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useDrawingContext } from '../context/DrawingContext';
@@ -6,11 +6,13 @@ import DrawingCanvas from '../components/DrawingCanvas';
 import FilledButton from '../components/FilledButton';
 import { Stroke } from '../interfaces/stroke';
 import { playStrokeAudioByDuration } from '../constants/playStrokeAudioByDuration';
+import SoundInstructionsPopup from '../components/SoundInstructionsPopup';
 
 const TargetSoundPage: React.FC = () => {
   const navigate = useNavigate();
   const { targetStrokes, targetStrokesSound, setTargetStrokesSound } = useDrawingContext();
   const isTargetStrokesSoundComplete = targetStrokes.length === targetStrokesSound.length;
+  const [showInstructions, setShowInstructions] = useState(true); 
 
   const [isPlaying, setIsPlaying] = useState(false); 
   const isPlayingRef = useRef(false); 
@@ -29,6 +31,7 @@ const TargetSoundPage: React.FC = () => {
 
     for (const stroke of targetStrokesSound) {
       await playStrokeAudioByDuration(stroke, isPlayingRef);
+      if (!isPlayingRef.current) break;
     };
 
     setIsPlaying(false);
@@ -45,8 +48,15 @@ const TargetSoundPage: React.FC = () => {
     navigate('/countdown');
   };
 
+  useEffect(() => {
+    setShowInstructions(true); 
+  }, []);
+
   return (
     <>
+      {showInstructions && (
+        <SoundInstructionsPopup onClose={() => setShowInstructions(false)} />
+      )}
       <DrawingCanvas 
         isFullSize={true}
         strokes={targetStrokes} 
