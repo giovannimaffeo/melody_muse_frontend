@@ -18,7 +18,7 @@ interface DrawingCanvasProps {
   strokes: Stroke[];
   addCompletedStrokes?: (completedStrokes: Stroke[]) => void;
   removeCompletedStroke?: (stroke: Stroke) => void; 
-  removeAllCompletedStrokes?: () => void;
+  removeAllCompletedStrokes?: (screenIndex: number) => void;
   mode?: 'draw' | 'sound' | 'readOnly';
   addStrokeSound?: (stroke: Stroke) => void;
   refreshOnChangeStrokes?: boolean;
@@ -206,7 +206,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     if (canvas && context) {
       context.clearRect(0, 0, canvas.width, canvas.height);
       setActiveStrokes([]);
-      removeAllCompletedStrokes && removeAllCompletedStrokes();
+      removeAllCompletedStrokes && removeAllCompletedStrokes(screenIndex);
     };
   };
 

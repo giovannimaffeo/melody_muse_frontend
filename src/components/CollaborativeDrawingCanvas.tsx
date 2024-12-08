@@ -7,7 +7,7 @@ interface CollaborativeDrawingCanvasProps {
 	strokes: Stroke[];
 	addCompletedStrokes: (completedStrokes: Stroke[]) => void;
 	removeCompletedStroke: (stroke: Stroke) => void;
-	removeAllCompletedStrokes: () => void;
+	removeAllCompletedStrokes: (screenIndex: number) => void;
 	readOnlyStrokes?: Stroke[];
 };
 

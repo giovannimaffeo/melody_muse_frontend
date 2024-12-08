@@ -21,11 +21,15 @@ const CollaborativeDrawingPage: React.FC = () => {
   };
 
   const removeCompletedStroke = (stroke: Stroke) => {
-    setCollaborativeStrokes(() => collaborativeStrokes.filter((collaborativeStroke) => collaborativeStroke.id !== stroke.id));
+    setCollaborativeStrokes(collaborativeStrokes.filter((collaborativeStroke) => 
+      !(collaborativeStroke.id === stroke.id && collaborativeStroke.screenIndex === stroke.screenIndex)
+    ));
   };
 
-  const removeAllCompletedStrokes = () => {
-    setCollaborativeStrokes([]);
+  const removeAllCompletedStrokes = (screenIndex: number) => {
+    setCollaborativeStrokes(collaborativeStrokes.filter((collaborativeStroke: Stroke) => 
+      collaborativeStroke.screenIndex !== screenIndex
+    ));
   };
 
   return (
